@@ -13,9 +13,7 @@ Create a default engine called 'MyEngine'
 @$ mengine my-engine@
 
 Dummy apps: 
-* dummy-active_record
-
---
+* _dummy-active_record_
 
 h2. Dummies for ORMs
 
@@ -24,8 +22,8 @@ Create engine named 'MyEngine' and dummy apps configured for A.R and Mongoid
 @$ mengine my-engine --orms mongoid ar@
 
 Dummy apps:
-* dummy-mongoid
-* dummy-active_record
+* _dummy-mongoid_
+* _dummy-active_record_
 
 h2. Testing framework
 
@@ -45,10 +43,10 @@ For each type create dummy apps for A.R and Mongoid. Use Rspec as the testing fr
 @$ mengine demo --orms mongoid ar --types cancan devise -t rspec@
 
 Dummy apps:
-* dummy-cancan-mongoid
-* dummy-cancan-active_record
-* dummy-devise-mongoid
-* dummy-devise-active_record
+* _dummy-cancan-mongoid_
+* _dummy-cancan-active_record_
+* _dummy-devise-mongoid_
+* _dummy-devise-active_record_
 
 Use --help to see supported options.
 
