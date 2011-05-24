@@ -6,6 +6,8 @@ h2. Usage
 
 @$ mengine ENGINE_NAME [options]@
 
+Use _--help_ to see supported options.
+
 h2. Example usage
 
 Create a default engine called 'MyEngine'
@@ -47,8 +49,6 @@ Dummy apps:
 * _dummy-cancan-active_record_
 * _dummy-devise-mongoid_
 * _dummy-devise-active_record_
-
-Use --help to see supported options.
 
 h2. Bugs and Feedback
 
