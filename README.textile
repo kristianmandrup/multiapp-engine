@@ -1,46 +1,48 @@
-h1. Enginex
+h1. Multi App Engine
 
-Similar to enginex but can generate and setup multiple individual dummy apps (configured for either Mongoid or Active Record) for testing your gem.
+Similar to "enginex":https://github.com/josevalim/enginex but can generate and setup multiple individual dummy apps (configured for either Mongoid or Active Record) for testing your gem.
 
 h2. Usage
 
-@$ enginex ENGINE_NAME [options]@
+@$ mengine ENGINE_NAME [options]@
 
 h2. Example usage
 
 Create a default engine called 'MyEngine'
 
-@$ enginex my-engine
+@$ mengine my-engine@
 
 Dummy apps: 
 * dummy-active_record
 
 --
 
+h2. Dummies for ORMs
+
 Create engine named 'MyEngine' and dummy apps configured for A.R and Mongoid 
 
-@$ enginex my-engine --orms mongoid ar@
+@$ mengine my-engine --orms mongoid ar@
 
 Dummy apps:
 * dummy-mongoid
 * dummy-active_record
 
---
+h2. Testing framework
 
 Create engine named 'Demox' and a single dummy app configured for Mongoid. 
 Use Rspec as the testing framework for the engine.
 
-@$ enginex demox --orms mongoid -t rspec@
+@$ mengine demox --orms mongoid -t rspec@
 
 Dummy apps:
 * dummy-mongoid
 
---
+h2. Dummy application types
 
 Create engine named 'Demox' and create dummy apps for cancan and devise (types). 
 For each type create dummy apps for A.R and Mongoid. Use Rspec as the testing framework.
 
-@$ enginex demo --orms mongoid ar --types cancan devise -t rspec@
+@$ mengine demo --orms mongoid ar --types cancan devise -t rspec@
 
 Dummy apps:
 * dummy-cancan-mongoid
