@@ -1,0 +1,4 @@
+# Configure Rails Envinronment
+ENV["RAILS_ENV"] = "test"
+require 'spec_helper/init'
+require 'spec_helper/config'

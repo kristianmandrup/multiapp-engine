@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# -*- mode: ruby -*-
+
+require 'dummy_app'
+
+ARGV << "--help" if ARGV.empty?
+
+DummyApp.start

@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# -*- mode: ruby -*-
+
+require 'multi_engine'
+
+ARGV << "--help" if ARGV.empty?
+
+MultiEngine.start
