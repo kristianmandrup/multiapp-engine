@@ -29,13 +29,13 @@ The problem is, that the rails command doesn't work right within a directory wit
 @bundle install@, @rails new@ or @rails g@ command in this sandbox environment and then importa the app again. 
 This functionality should be integrated into _export_ and _import_ commands on the *dummy* generator.
 
-@dummy export cancan_active_record ~/rails-dummies [--bundle]@
+@dummy export cancan_active_record --sandbox ~/rails-dummies [--bundle]@
 
-@dummy import cancan_active_record ~/rails-dummies [--bundle]@
+@dummy import cancan_active_record --sandbox ~/rails-dummies@
 
 The _sandbox_ command will export the dummy app to the sandbox (if not there), execute a given command on the dummy app then import the dummy app back in. 
 
-@dummy sandbox cancan_active_record "bundle update"
+@dummy sandbox cancan_active_record --command "bundle update"@
 
 h3. Release dummy app
 
@@ -54,7 +54,7 @@ The dummy _generate_ command will use the _sandbox_ command internally for execu
 
 The ALL name runs the scaffold on all dymmy apps.
 
-@dummy generate cancan devise "scaffold post name:string"@ --orms active_record
+@dummy generate cancan devise --command "scaffold post name:string" --orms active_record@
 
 When the _--orms_ option is used, the command is only run on dummy apps with matching orm postfix
 
@@ -64,11 +64,24 @@ h3. Multi app Gem configuration
 
 The multiengine should also have a way to update a set of apps with gems.
 
-@dummy update cancan-mongoid cancan-active_record --gems devise cancan@  
+@dummy update cancan-mongoid cancan-active_record@
 
-This generator should for each of the listed dummy apps, insert the gem statement, run @bundle install@ and then attempt to run @cancan:install@ and @cancan:configure@
-This should make it much easier to update the dummy apps with some configuration!
-This _update_ command will also use the _sandbox_ command internally for execution.
+Run bundle update on each dummy app
+
+@dummy install cancan-mongoid cancan-active_record --gems devise cancan@  
+
+Run bundle install after inserting gems into Gemfile of each dummy app
+This command should also attempt to run @cancan:install@ and @cancan:configure@
+
+These commands should make it much easier to update the dummy apps with some configuration!
+
+This _update_ and _install_ commands will also use the _sandbox_ command internally for execution.
+
+h2. Notes on scaffolding
+
+See "scaffoldhub":http://patshaughnessy.net/2011/4/30/contributing-a-new-scaffold-to-scaffoldhub
+
+Would be a cool thing to get rolling...
 
 h2. Dummies for ORMs
 

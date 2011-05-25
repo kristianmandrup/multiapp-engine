@@ -27,8 +27,8 @@ class MultiEngine < Thor::Group
     METHOD
   end
 
-  argument :path, :type => :string,
-                  :desc => "Path to the engine to be created"
+  argument     :path, :type => :string,
+                                :desc => "Path to the engine to be created"
 
   class_option :test_framework, :default => "rspec", :aliases => "-t",
                                 :desc => "Test framework to use. test_unit or rspec."
