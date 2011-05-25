@@ -50,22 +50,46 @@ module Dummy
     end
 
     def sandbox_exec
-      matching_dummy_apps.each do |dummy_app|
-        export_app dummy_app
-        insert_gems
-        bundle_install
+        export_apps
+
+        matching_dummy_apps.each do |app|
+          FileUtils.cd sandbox_app_dir(app)
+          insert_gems_for app
+          bundle_install app
+        end
+
         import_app dummy_app
       end            
     end
 
     protected
 
-    def insert_gems
-      say "Inserting gems into Gemfile: #{gems}"
+    def export_apps
+      invoke Dummy::Export, command_args
     end
 
-    def bundle_install
-      exec 'bundle' if bundle?
+    def command_args
+      args = [matching_dummy_apps]
+      args << "--sandbox #{sandbox}" if !sandbox.empty?
+      args
+    end
+
+    def import_apps
+      invoke Dummy::Import, command_args
+    end
+
+    def insert_gems_for app
+      say "Inserting gems into Gemfile: #{gems} in #{app}"
+      append_to_file gemfile, gems.maps{|gm| "gem '#{gm}'" }.join("\n")
+    end
+
+    def bundle_install app
+      say "bundle install for #{app}"
+      exec 'bundle'
+    end
+
+    def sandbox_app_dir app
+      File.join(sandbox_location, app)
     end
 
     def exec command
@@ -100,7 +124,6 @@ module Dummy
         end        
       }
     end
-    alias_method :bundle?, :bundle
 
     def 
 

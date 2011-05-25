@@ -42,7 +42,7 @@ module Dummy
     def check!
       if !has_dummy_apps_dir? 
         say "dummy must be run from the Rails application root", :red
-        exit(0)
+        return
       end
     end
 

@@ -56,7 +56,7 @@ module Dummy
     protected
 
     def bundle_update
-      exec 'bundle update' if bundle?
+      exec 'bundle update'
     end
 
     def exec command
@@ -91,9 +91,6 @@ module Dummy
         end        
       }
     end
-    alias_method :bundle?, :bundle
-
-    def 
 
     def dummy_apps_dir
       File.join(destination_root, dummy_apps_dir_relative)

@@ -8,8 +8,6 @@ require "rails/generators/rails/app/app_generator"
 
 require "sugar-high/file"
 require 'fileutils'
-require 'dummy/export'
-require 'dummy/import'
 
 # The problem is, that the rails command doesn't work right within a directory with its own Gemfile. 
 # You need to first export the app to a sandbox, then run any bundle or rails commands:
@@ -22,6 +20,9 @@ require 'dummy/import'
 # @dummy export cancan_active_record ~/rails-dummies [--bundle]@
 
 module Dummy
+  autoload :Export,     'dummy/export'
+  autoload :Import,     'dummy/import'
+
   class Sandbox < Thor::Group
     include Thor::Actions
     check_unknown_options!
@@ -39,7 +40,7 @@ module Dummy
     class_option  :orms,      :type => :array, :default => [], :aliases => "-o",
                                 :desc => "Orms to match on dummy apps" 
 
-    class_option  :command,  :type => :string, :aliases => "-c",
+    class_option  :command,  :type => :string, :aliases => "-c", :required => true,
                                 :desc => "Command to run on each dummy app" 
                                                               
     desc "Run a command on a dummy app in the sandbox"
@@ -49,7 +50,7 @@ module Dummy
     end
 
     def sandbox_exec
-      matching_dummy_apps.each do |dummy_app|
+      .each do |dummy_app|
         export_app dummy_app        
         exec command
         import_app dummy_app
@@ -58,8 +59,18 @@ module Dummy
 
     protected
 
-    def bundle_install
-      exec 'bundle' if bundle?
+    def export_app
+      invoke Dummy::Export, command_args
+    end
+
+    def command_args
+      args = [matching_dummy_apps]
+      args << "--sandbox #{sandbox}" if !sandbox.empty?
+      args
+    end
+
+    def import_app
+      invoke Dummy::Import, command_args
     end
 
     def exec command
@@ -68,7 +79,7 @@ module Dummy
     end        
 
     def matching_dummy_apps
-      dummy_apps.select {|app| matches_any_orm?(app, orms) }
+      @matching_dummy_apps ||= dummy_apps.select {|app| matches_any_orm?(app, orms) }
     end
 
     def matches_any_orm? app, orms
@@ -94,9 +105,6 @@ module Dummy
         end        
       }
     end
-    alias_method :bundle?, :bundle
-
-    def 
 
     def dummy_apps_dir
       File.join(destination_root, dummy_apps_dir_relative)

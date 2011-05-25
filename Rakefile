@@ -22,7 +22,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
     s.name = "multiengine"
-    s.version = "0.5.0"
+    s.version = "0.5.1"
     s.summary = "Creates a Rails 3 engine configuration with multiple dummy apps for testing"
     s.email = "kmandrup@gmail.com"
     s.homepage = "http://github.com/kristianmandrup/multiapp-engine"
