@@ -1,3 +1,17 @@
+require "thor/group"
+require "active_support"
+require "active_support/version"
+require "active_support/core_ext/string"
+
+require "rails/generators"
+require "rails/generators/rails/app/app_generator"
+
+require "sugar-high/file"
+require 'fileutils'
+
+require 'dummy/export'
+require 'dummy/import'
+
 # The problem is, that the rails command doesn't work right within a directory with its own Gemfile. 
 # You need to first export the app to a sandbox, then run any bundle or rails commands:
 

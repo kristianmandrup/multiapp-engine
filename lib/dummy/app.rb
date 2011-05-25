@@ -56,7 +56,7 @@ module Dummy
       end
     
       if !valid_command?
-        say "dummy must be run from the Rails application root or the test/rspec folder", :red
+        say "The command #{app_command} was not recognized, please use one of: #{valid_commands.join(', ')}", :red
         exit(0)
       end
     
