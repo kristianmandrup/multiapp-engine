@@ -42,7 +42,7 @@ module Dummy
     def import
       FileUtils.cd sandbox_location
       bundle_install
-      dummy_apps.each do |dummy_app|
+      matching_dummy_apps.each do |dummy_app|
         FileUtils.mv dummy_app, dummy_apps_dir
       end            
     end

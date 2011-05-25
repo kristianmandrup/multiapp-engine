@@ -35,10 +35,11 @@ module Dummy
       self.destination_root = File.expand_path(destination_root)
     end
 
-    def import
-      FileUtils.cd sandbox_location
+    def sandbox_exec
       matching_dummy_apps.each do |dummy_app|
+        export_app dummy_app        
         exec command
+        import_app dummy_app
       end            
     end
 
@@ -49,6 +50,7 @@ module Dummy
     end
 
     def exec command
+      FileUtils.cd sandbox_location      
       Kernel::system command
     end        
 
