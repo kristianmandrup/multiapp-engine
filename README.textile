@@ -17,6 +17,48 @@ Create a default engine called 'MyEngine'
 Dummy apps: 
 * _dummy-active_record_
 
+h2. Design considerations and TODO
+
+The goal is to implement the functionality described in this section.
+
+h3. Multi app Export/Import
+
+The problem is, that the rails command doesn't work right within a directory with its own Gemfile. You need to first export the app to a sandbox, then run the
+@bundle install@, @rails new@ or @rails g@ command in this sandbox environment and then importa the app again. I will isolate this functionality into a set of generators.
+
+@export_dummies cancan_active_record ~/rails-dummies [--bundle]@
+
+@import_dummies cancan_active_record ~/rails-dummies [--bundle]@
+
+The _sandbox_ command will export the dummy app to the sandbox (if not there), execute a given command on the dummy app then import the dummy app back in. 
+
+@sandbox_dummy cancan_active_record "bundle update"
+
+h3. Release dummy app
+
+There could also be a command to easily release a dummy app. The dummy should be linked to the current version of the gem/engine. Hence the VERSION file (or gemspec version)
+could be used to version stamp the gem statement in the dummy apps' Gemfile. The optional --github option could be used to indicate that the app should draw its engine from an alternative github source. This is useful if someone forks off the original engine and thus wants to demonstrate how the dummy app functions with his version of the engine gem.
+
+@release_dummy cancan_active_record --github mike@
+
+h3. Multi app Generation
+
+There is also a need to be able to run a generator command across all dummy apps, such as fx: @rails g scaffold post name:string@
+Then for each dummy app, the generator will run via the dummy app configuration
+
+@gen_dummies ALL "scaffold post name:string"@
+
+For this example it would generate a Mongoid Post model for the mongoid dummy and an AR model for the AR dummy etc.
+
+h3. Multi app Gem configuration
+
+The multiengine should also have a way to update a set of apps with gems.
+
+@update_dummies cancan-mongoid cancan-active_record --gems devise cancan@  
+
+This generator should for each of the listed dummy apps, insert the gem statement, run @bundle install@ and then attempt to run @cancan:install@ and @cancan:configure@
+This should make it much easier to update the dummy apps with some configuration!
+
 h2. Dummies for ORMs
 
 Create engine named 'MyEngine' and dummy apps configured for A.R and Mongoid 
