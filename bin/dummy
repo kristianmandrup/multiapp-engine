@@ -5,4 +5,4 @@ require 'dummy/app'
 
 ARGV << "--help" if ARGV.empty?
 
-DummyApp.start
+Dummy::App.start
