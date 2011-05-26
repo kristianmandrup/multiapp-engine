@@ -1,5 +1,5 @@
 module Mengine
-  module Base
+  module Base    
     def exec_command command
       Kernel::system command
     end    

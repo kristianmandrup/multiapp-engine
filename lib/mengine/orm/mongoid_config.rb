@@ -1,10 +1,10 @@
 module Mengine
   class Orm
     module MongoidConfig      
-      def config_mongoid
+      def config_mongoid dummy_app
         say "Configuring app for mongoid"
 
-        inside dummy_app_path do
+        inside dummy_app.path do
           append_to_file gemfile do 
          %q{gem "mongoid"
 gem "bson_ext"

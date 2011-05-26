@@ -76,8 +76,8 @@ class MultiEngine < Thor::Group
       self.current_type = type
       orms.each do |orm|
         
-        dummy_app = DummyApp.new root_path, type, orm
-        self.args = app_args(dummy_app)
+        set_dummy type, orm        
+        self.args = app_args
         
         say "Creating #{type} dummy Rails app with #{orm_name}", :green        
         say command
@@ -88,13 +88,7 @@ class MultiEngine < Thor::Group
         say "Configuring Rails app"
         change_config_files
 
-        # say "Removing unneeded files"
-        remove_uneeded_rails_files
-            
-        send orm_config_method if respond_to?(orm_config_method)
-
-        say "Configuring testing framework for #{orm_name}"      
-        set_orm_helpers
+        configure_orm(orm)         
 
         dummy_app.ensure_class_name
         
@@ -105,10 +99,49 @@ class MultiEngine < Thor::Group
 
   protected
 
-    attr_accessor :args
+    attr_accessor :args, :dummy
 
     include Mengine
     include Mengine::Orm
+
+    def set_dummy type, orm
+      self.dummy = Dummy.create root_path, type, orm
+    end
+
+    def configure_orm orm
+      case orm.to_sym 
+      when :mongoid
+        mongoid_configurator.new root_path, test_type, orm, dummy       
+      end
+      say "Configuring testing framework for #{orm}"      
+      Mengine::Orm.new(root_path, test_type, orm, dummy).set_orm_helpers      
+    end
+
+    def change_config_files
+      store_application_definition!
+      template "rails/boot.rb", "#{dummy_app.boot_file}", :force => true
+      template "rails/application.rb", "#{dummy_app.application_file}", :force => true
+    end
+
+    def application_definition
+      contents = File.read(dummy_app.application_file)
+      index = (contents.index("module #{dummy_app.class_name}")) || 0        
+      contents[index..-1]
+    end
+    alias :store_application_definition! :application_definition
+  
+    def app_args
+      args = [dummy_app.app_path] # skip test unit
+      args << "-T" if skip_testunit?
+      args << "-J" if skip_javascript?      
+      # skip active record is orm is set to another datastore      
+      args << "-O" if !active_record?
+      args
+    end
+
+    def mongoid_configurator     
+      Mengine::Orm::MongoidConfig
+    end      
 
     def command args
       "rails new #{args.join(' ')} -f" # force overwrite
@@ -122,48 +155,25 @@ class MultiEngine < Thor::Group
       @types ||= !options[:types].empty? ? options[:types] : [""]
     end
 
-    def remove_uneeded_rails_files
-      # "db/seeds.rb", "Gemfile"
-      inside dummy_app_path do        
-        [".gitignore", "doc", "lib/tasks", "public/images/rails.png", "public/index.html", "public/robots.txt", "README", "test"].each do |file|
-          remove_file file
-        end
-      end
-    end
-
-    def change_config_files
-      store_application_definition!
-      template "rails/boot.rb", "#{DummyApp.boot_file}", :force => true
-      template "rails/application.rb", "#{DummyApp.application_file}", :force => true
-    end
-
-    def application_definition
-      contents = File.read(DummyApp.application_file)
-      index = (contents.index("module #{DummyApp.class_name}")) || 0        
-      contents[index..-1]
-    end
-    alias :store_application_definition! :application_definition
-  
-    def app_args dummy_app
-      args = [dummy_app.app_path] # skip test unit
-      args << "-T" if skip_testunit?
-      args << "-J" if skip_javascript?      
-      # skip active record is orm is set to another datastore      
-      args << "-O" if !active_record?
-      args
-    end
-
     def root_path 
       File.dirname(__FILE__)
     end
 
+    def dummy_app
+      dummy.dummy_app
+    end 
+    
+    def dummy_spec
+      dummy.dummy_spec
+    end      
+
     def test_helper_path
-      File.join(root_path, 'test_helpers', DummyApp.test_path).gsub /.+\/\//, ''
+      File.join(root_path, 'test_helpers', test_type).gsub /.+\/\//, ''
     end
 
-    def active_record?
-      !current_orm || ['active_record', 'ar'].include?(current_orm)
-    end
+    def test_type
+      rspec? ? "spec" : "test"
+    end        
 
     def skip_testunit?
       options[:tu]

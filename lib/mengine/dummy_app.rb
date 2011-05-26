@@ -5,13 +5,13 @@ module Mengine
     def initialize name
       @name = name
     end
+
+    def path
+      File.join app_specs_dir, dummy_app_name
+    end
     
     def named_dir dir_name
-      File.join(app_dir, dir_name)
-    end
-
-    def app_dir
-      File.join app_specs_dir, dummy_app_name
+      File.join(path, dir_name)
     end
 
     def app_specs_dir
@@ -38,6 +38,21 @@ module Mengine
         arr.join('-')
       end
     end
+
+    # the path to the dummy app 
+    # - fx spec/dummy-apps/dummy-mongoid
+    def path    
+      File.join(test_type, apps_dir_name, dummy_app_name)
+    end        
+
+    def remove_uneeded_rails_files
+      # "db/seeds.rb", "Gemfile"
+      inside path do        
+        [".gitignore", "doc", "lib/tasks", "public/images/rails.png", "public/index.html", "public/robots.txt", "README", "test"].each do |file|
+          remove_file file
+        end
+      end
+    end
     
     def ensure_class_name
       File.replace_content_from application_file, :where => /Dummy\S+/, :with => class_name      
@@ -56,7 +71,7 @@ module Mengine
     end
     
     def config_path
-      File.join app_path, 'config'
+      File.join path, 'config'
     end
 
     # the path to the application file of a dummy app 
@@ -69,22 +84,13 @@ module Mengine
       config_file 'boot.rb'
     end
 
-    def config_file name
-      File.join config_path, name
-
-    # the path to the dummy app 
-    # - fx spec/dummy-apps/dummy-mongoid
-    def app_path    
-      File.join(test_type, apps_dir_name, dummy_app_name)
-    end        
-
-    def test_path
-      File.join(app_path, test_type)
-    end    
+    def config_file file
+      File.join config_path, file
+    end
 
     def test_type
       rspec? ? "spec" : "test"
-    end
+    end        
 
     def apps_dir_name
       "dummy-apps"

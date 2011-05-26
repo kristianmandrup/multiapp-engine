@@ -1,7 +1,8 @@
 module Mengine
   class DummySpec
-    attr_accessor :name
-    
+    attr_accessor :name # name of dummy app
+
+    # initialized with the name of the dummy app
     def initialize name
       @name = name
     end
@@ -11,7 +12,7 @@ module Mengine
     end
 
     def app_dir
-      File.join app_specs_dir, dummy_app_name
+      File.join app_specs_dir, name
     end
 
     def app_specs_dir
