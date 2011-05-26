@@ -1,27 +1,11 @@
 module Mengine
-  class DummySpec
-    attr_accessor :name
-    
-    def initialize name
-      @name = name
-    end
-
-    def path
-      File.join app_specs_dir, dummy_app_name
-    end
-    
-    def named_dir dir_name
-      File.join(path, dir_name)
-    end
-
-    def app_specs_dir
-      "app-specs"
-    end
-        
-    extend self
-  end
-
   class DummyApp 
+    include Thor::Actions # enable invoke and template actions etc.
+
+    def self.source_root
+      @_source_root ||= File.expand_path('../../templates', __FILE__)
+    end
+    
     attr_accessor :root, :type, :orm
 
     def initialize root, type, orm
@@ -44,6 +28,12 @@ module Mengine
     def path    
       File.join(test_type, apps_dir_name, dummy_app_name)
     end        
+
+    # change config files 'boot' and 'application' of dummy app
+    def change_config_files
+      template "rails/boot.rb", "#{dummy_app.boot_file}", :force => true
+      template "rails/application.rb", "#{dummy_app.application_file}", :force => true
+    end
 
     def remove_uneeded_rails_files
       # "db/seeds.rb", "Gemfile"

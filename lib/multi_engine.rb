@@ -74,66 +74,65 @@ class MultiEngine < Thor::Group
 
   def invoke_rails_app_generators
     say "Vendoring Rails applications at #{test_path}/dummy-apps"
+    create_engine_config
+     
     types.each do |type|
       say "Creating #{type} apps"
       self.current_type = type
       orms.each do |orm|
-        
-        set_dummy type, orm        
-        self.args = app_args
-        
-        say "Creating #{type} dummy Rails app with #{orm_name}", :green        
-        say command
-        exec_command command
 
-        #invoke Rails::Generators::AppGenerator, app_args
+        # set dummy app and add to dummies
+        engine_config.set_dummy type, orm, app_args
+
+        # create an empty dummy folder in the test dir
+        engine_config.create_empty_dummy
+         
+        # export empty dummy app to sandbox
+        # execute rails new command (in force mode)
+        # import dummy app back in
+        say "Creating #{type} dummy Rails app with #{orm_name}", :green
+        invoke sandbox_generator, ["--command \"#{command}\" --bundle true"]
 
         say "Configuring Rails app"
+        # configure dummy app
         change_config_files
-
-        configure_orm(orm)         
-
+        # ensure dummy app class name is right
         dummy_app.ensure_class_name
-        
+
+        # go back to root of engine
         FileUtils.cd(destination_root)
+      end
+    end
+  end
+  
+  def configure_app_for_orms
+    # for each orm
+    orms.each do |orm|
+      # find dummy apps matching orm, and for each
+      apps_matching(orm).each do |name|    
+        configure the dummy app for that orm
+        engine_config.get_dummy(name).configure!
       end
     end
   end
 
   protected
 
-    attr_accessor :args, :dummy
+    attr_accessor :args, :engine_config
 
     include Mengine::Base
 
-    def set_dummy type, orm
-      self.dummy = Dummy.create root_path, type, orm
+    def create_engine_config
+      self.engine_config = Mengine::EngineConfig.new root_path, test_type
     end
 
-    def configure_orm orm
-      case orm.to_sym 
-      when :mongoid
-        mongoid_configurator.new root_path, test_type, orm, dummy       
-      end
-      say "Configuring testing framework for #{orm}"      
-      Mengine::Orm.new(root_path, test_type, orm, dummy).set_orm_helpers      
-    end
-
-    def change_config_files
-      store_application_definition!
-      template "rails/boot.rb", "#{dummy_app.boot_file}", :force => true
-      template "rails/application.rb", "#{dummy_app.application_file}", :force => true
-    end
-
+    # used from inside template
     def application_definition
-      contents = File.read(dummy_app.application_file)
-      index = (contents.index("module #{dummy_app.class_name}")) || 0        
-      contents[index..-1]
+      engine_config.application_definition
     end
-    alias :store_application_definition! :application_definition
   
     def app_args
-      args = [dummy_app.app_path] # skip test unit
+      args = [dummy_app.path] # skip test unit
       args << "-T" if skip_testunit?
       args << "-J" if skip_javascript?      
       # skip active record is orm is set to another datastore      
@@ -141,13 +140,22 @@ class MultiEngine < Thor::Group
       args
     end
 
-    def mongoid_configurator     
-      Mengine::Orm::MongoidConfig
-    end      
-
+    # rails new command to be executed to generate dummy app
     def command args
       "rails new #{args.join(' ')} -f" # force overwrite
     end
+
+    def sandbox_generator
+      Dummy::Sandbox
+    end
+    
+    def install_generator
+      Dummy::Install
+    end      
+
+    def mongoid_configurator     
+      Mengine::Orm::MongoidConfig
+    end      
 
     def orms
       @orms ||= !options[:orms].empty? ? options[:orms] : ['active_record']
@@ -161,21 +169,14 @@ class MultiEngine < Thor::Group
       File.dirname(__FILE__)
     end
 
-    def dummy_app
-      dummy.dummy_app
-    end 
-    
-    def dummy_spec
-      dummy.dummy_spec
-    end      
-
     def test_helper_path
       File.join(root_path, 'test_helpers', test_type).gsub /.+\/\//, ''
     end
 
     def test_type
       rspec? ? "spec" : "test"
-    end        
+    end
+    alias_method :test_path, :test_type
 
     def skip_testunit?
       options[:tu]

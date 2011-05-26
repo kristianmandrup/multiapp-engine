@@ -54,11 +54,12 @@ module Dummy
 
         matching_dummy_apps.each do |app|
           FileUtils.cd sandbox_app_dir(app)
-          insert_gems_for app
-          bundle_install app
+          insert_gems_for
+          bundle_install
+          install_gems
         end
 
-        import_app dummy_app
+        import_apps
       end            
     end
 
@@ -78,73 +79,27 @@ module Dummy
       invoke Dummy::Import, command_args
     end
 
-    def insert_gems_for app
-      say "Inserting gems into Gemfile: #{gems} in #{app}"
+    def insert_gems_for
+      say "Inserting gems into Gemfile: #{gems}"
       append_to_file gemfile, gems.maps{|gm| "gem '#{gm}'" }.join("\n")
     end
 
-    def bundle_install app
-      say "bundle install for #{app}"
-      exec 'bundle'
+    def install_gems
+      gems.each do |gm|
+        exec "rails g #{gm}:install"
+        exec "rails g #{gm}:config"
+      end
     end
 
     def sandbox_app_dir app
       File.join(sandbox_location, app)
     end
 
-    def exec command
-      FileUtils.cd sandbox_location      
-      Kernel::system command
-    end        
-
-    def matching_dummy_apps
-      dummy_apps.select {|app| matches_any_orm?(app, orms) }
-    end
-
-    def matches_any_orm? app, orms
-      orms.any? {|orm| app =~ /#{orm}$/ }       
-    end
-
-    def dummy_apps
-      FileList.new "dummy-*"
-    end
-
     def self.class_options
-      [:sandbox, :bundle]
-    end
-
-    def sandbox_location
-      @sandbox_location ||= sandbox || '~/rails-dummies'
-    end      
-
-    class_options.each do |clsopt|
-      class_eval %{
-        def #{clsopt}
-          options[:#{clsopt}]
-        end        
-      }
-    end
-
-    def 
-
-    def dummy_apps_dir
-      File.join(destination_root, dummy_apps_dir_relative)
-    end
-
-    def dummy_apps_dir_relative    
-      File.join(app_test_path, 'dummy-apps')
-    end
-
-    def has_dummy_apps_dir?       
-      File.directory? dummy_apps_dir
-    end
-
-    def app_test_path
-      return 'test' if File.directory?('test')
-      return 'spec' if File.directory?('spec')
-      say "You must have a /spec or /test directory in the root of your project", :red
-      exit(0)
-    end
+      [:sandbox, :orms, :gems]
+    end 
+    
+    include Dummy::Helper       
   end
 end
 

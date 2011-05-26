@@ -1,9 +1,16 @@
 module Mengine
   class Orm
     module MongoidConfig      
+      include Thor::Actions # enable inside, append_to_file actions etc.
+      include Mengine::Base # exec_command etc
+
+      def self.source_root
+        @_source_root ||= File.expand_path('../../../templates', __FILE__)
+      end
+      
       def config_mongoid dummy_app
         say "Configuring app for mongoid"
-
+        
         inside dummy_app.path do
           append_to_file gemfile do 
          %q{gem "mongoid"

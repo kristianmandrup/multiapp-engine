@@ -2,7 +2,7 @@ module Mengine
   class Templates
     attr_accessor :dummy_spec
     
-    def initialize root_path, dummy_spec, test_dir
+    def initialize dummy
       @dummy_spec = dummy_spec
       @test_dir = test_dir
       @root_path = root_path

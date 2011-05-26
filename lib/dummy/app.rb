@@ -12,12 +12,12 @@ require 'fileutils'
 
 module Dummy
   autoload :Export,     'dummy/export'
+  autoload :Generate,   'dummy/generate'
   autoload :Import,     'dummy/import'
-  autoload :Update ,    'dummy/update'
-  autoload :Sandbox ,   'dummy/sandbox'
   autoload :Install,    'dummy/install'
   autoload :Release,    'dummy/release'
-  autoload :Generate,   'dummy/generate'
+  autoload :Sandbox ,   'dummy/sandbox'
+  autoload :Update ,    'dummy/update'
 
   class App < Thor::Group
     include Thor::Actions
@@ -67,72 +67,55 @@ module Dummy
     end
 
     protected
-
-    def valid_commands
-      [:sandbox, :export, :import, :gems, :generate, :update, :install, :release]
-    end
-    
-    def valid_command?
-      valid_commands.include? command_sym
-    end      
-    
-    def command_sym
-      app_command.downcase.to_sym
-    end  
     
     def app_args
       args = case command_sym
       when :sandbox
-        "--command #{command}"
+        make_arg :command
       when :export, :import
-        "--bundle #{bundle}"
+        make_arg :bundle
       when :generate
-        "--command #{command}"        
+        make_arg :command
       when :update
       when :install
-        "--gems #{gems}"
+        make_arg :gems
       when :release
-        "--github #{github}"
+        make_arg :github
       end
       args = [args]
-      args << "--sandbox #{sandbox}" if !sandbox.empty?
-      args << "--orms #{orms}"  if !orms.empty? 
+      args << make_arg(:sandbox) if !sandbox.empty?
+      args << make_arg(:orms) if !orms.empty? 
       args
     end
-    
-    def self.command_options
-      [:sandbox, :gems, :command, :github, :orms, :bundle]
+
+    def make_arg name
+      "--#{name} #{send name}"
     end
-    
-    command_options.each do |clsopt|
-      class_eval %{
-        def #{clsopt}
-          options[:#{clsopt}]
-        end        
-      }
-    end
-    
+
     def app_command_class
       "Dummy::#{app_command_class_name}".constantize
     end
     
     def app_command_class_name
       app_command.camelize
+    end    
+        
+    def command_sym
+      app_command.downcase.to_sym
+    end  
+
+    def valid_command?
+      valid_commands.include? command_sym
+    end      
+
+    def valid_commands
+      [:sandbox, :export, :import, :gems, :generate, :update, :install, :release]
     end
     
-    def dummy_apps_dir
-      File.join(app_test_path, 'dummy-apps')
+    def self.command_options
+      [:sandbox, :gems, :command, :github, :orms, :bundle]
     end
-    
-    def has_dummy_apps_dir?       
-      File.directory? dummy_apps_dir
-    end
-    
-    def app_test_path
-      return 'test' if File.directory?('test')
-      return 'spec' if File.directory?('spec')
-      say "You must have a /spec or /test directory in the root of your project", :red
-      raise "Missing /spec or /test dir in project"
-    end 
+
+    include Dummy::Helper        
   end
 end

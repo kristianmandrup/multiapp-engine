@@ -8,6 +8,7 @@ require "rails/generators/rails/app/app_generator"
 
 require "sugar-high/file"
 require 'fileutils'
+require 'mengine/base'
 require 'dummy/export'
 require 'dummy/import'
 
@@ -27,7 +28,7 @@ module Dummy
     check_unknown_options!
 
     def self.source_root
-      @_source_root ||= File.expand_path('../templates', __FILE__)
+      @_source_root ||= File.expand_path('../../templates', __FILE__)
     end
 
     argument      :apps,     :type => :array,  :default => [], 
@@ -55,61 +56,13 @@ module Dummy
 
     protected
 
-    def bundle_update
-      exec 'bundle update'
-    end
-
-    def exec command
-      FileUtils.cd sandbox_location      
-      Kernel::system command
-    end        
-
-    def matching_dummy_apps
-      dummy_apps.select {|app| matches_any_orm?(app, orms) }
-    end
-
-    def matches_any_orm? app, orms
-      orms.any? {|orm| app =~ /#{orm}$/ }       
-    end
-
-    def dummy_apps
-      FileList.new "dummy-*"
-    end
+    include Mengine::Base
 
     def self.class_options
-      [:sandbox, :bundle]
+      [:sandbox, :orms]
     end
-
-    def sandbox_location
-      @sandbox_location ||= sandbox || '~/rails-dummies'
-    end      
-
-    class_options.each do |clsopt|
-      class_eval %{
-        def #{clsopt}
-          options[:#{clsopt}]
-        end        
-      }
-    end
-
-    def dummy_apps_dir
-      File.join(destination_root, dummy_apps_dir_relative)
-    end
-
-    def dummy_apps_dir_relative    
-      File.join(app_test_path, 'dummy-apps')
-    end
-
-    def has_dummy_apps_dir?       
-      File.directory? dummy_apps_dir
-    end
-
-    def app_test_path
-      return 'test' if File.directory?('test')
-      return 'spec' if File.directory?('spec')
-      say "You must have a /spec or /test directory in the root of your project", :red
-      exit(0)
-    end
+    
+    include Dummy::Helper    
   end
 end
 

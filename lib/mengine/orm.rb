@@ -22,6 +22,8 @@ module Mengine
 
     protected
 
+    include Mengine::Base
+
     # the orm_helper.rb is put in the root of the dummy app spec folder 
     def copy_orm_helper
       FileUtils.cp src_file, target_file
@@ -66,6 +68,10 @@ module Mengine
       "config_#{orm}"
     end
 
+    def test_path
+      test_type
+    end
+
     def replace_orm_in file
       return if !File.exist?(file)
       [['orm', orm], ['path', dummy_spec.app_path], ['camelized', dummy_app.class_name]].each do |pair|
@@ -88,7 +94,7 @@ module Mengine
     end
 
     def test_helper_path
-      File.join(root_path, 'test_helpers', test_type).gsub /.+\/\//, ''
+      File.join(root_path, 'test_helpers', test_path).gsub /.+\/\//, ''
     end
 
     def active_record?
@@ -97,10 +103,6 @@ module Mengine
 
     def orm_helper
       "#{orm}_helper.rb"
-    end
-
-    def make_empty_dir name
-      empty_directory(name) unless File.directory?(name)
     end
 
     def spec_integration_dir
@@ -113,19 +115,6 @@ module Mengine
 
     def dummy_file
       templates.dummy_file
-    end
-
-    def orm_name
-      translate current_orm
-    end
-
-    def translate orm
-      case orm.to_sym
-      when :ar
-        'active_record'
-      else
-        orm
-      end
     end
   end
 end

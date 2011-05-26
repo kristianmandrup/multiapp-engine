@@ -69,52 +69,11 @@ module Dummy
       Dummy::Sandbox      
     end
 
-    def matching_dummy_apps
-      dummy_apps.select {|app| matches_any_orm?(app, orms) }
-    end
-
-    def matches_any_orm? app, orms
-      orms.any? {|orm| app =~ /#{orm}$/ }       
-    end
-
-    def dummy_apps
-      FileList.new "dummy-*"
-    end
-
     def self.class_options
       [:sandbox, :orms, :command]
     end
-
-    def sandbox_location
-      @sandbox_location ||= sandbox || '~/rails-dummies'
-    end      
-
-    class_options.each do |clsopt|
-      class_eval %{
-        def #{clsopt}
-          options[:#{clsopt}]
-        end        
-      }
-    end 
-
-    def dummy_apps_dir
-      File.join(destination_root, dummy_apps_dir_relative)
-    end
-
-    def dummy_apps_dir_relative    
-      File.join(app_test_path, 'dummy-apps')
-    end
-
-    def has_dummy_apps_dir?       
-      File.directory? dummy_apps_dir
-    end
-
-    def app_test_path
-      return 'test' if File.directory?('test')
-      return 'spec' if File.directory?('spec')
-      say "You must have a /spec or /test directory in the root of your project", :red
-      raise "No test or spec dir found in project"
-    end
+    
+    include Dummy::Helper    
   end
 end
 
