@@ -9,8 +9,11 @@ require "rails/generators/rails/app/app_generator"
 require "sugar-high/file"
 require 'fileutils'
 require "mengine/base"
+require "mengine/templates"
+require "mengine/dummy"
+require "mengine/dummy_spec"
 require "mengine/dummy_app"
-require "mengine/orm/helper"
+require "mengine/orm"
 
 class MultiEngine < Thor::Group
   include Thor::Actions
@@ -101,8 +104,7 @@ class MultiEngine < Thor::Group
 
     attr_accessor :args, :dummy
 
-    include Mengine
-    include Mengine::Orm
+    include Mengine::Base
 
     def set_dummy type, orm
       self.dummy = Dummy.create root_path, type, orm
