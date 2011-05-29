@@ -53,6 +53,16 @@ module Dummy
 
     include Mengine::Base
 
+    def ensure_class_name
+      File.replace_content_from application_file, :where => /Dummy\S+/, :with => class_name      
+    end
+
+    # class name of the dummy app
+    # - fx DummyMongoid
+    def class_name
+      name.underscore.camelize      
+    end
+
     def sandbox_args(app)
       args = [apps.join(' ')]
       args << make_arg(:command,  rails_new_command(app))

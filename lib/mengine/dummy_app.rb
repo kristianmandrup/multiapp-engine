@@ -57,20 +57,10 @@ module Mengine
 
     # rails new command to be executed to generate dummy app
     
-    def ensure_class_name
-      File.replace_content_from application_file, :where => /Dummy\S+/, :with => class_name      
-    end
-
     def args_string 
       option_args.join(' ')
     end
     
-    # class name of the dummy app
-    # - fx DummyMongoid
-    def class_name
-      name.underscore.camelize      
-    end
-
     # the full path to the dummy app dir
     # - fx /.../myengine/spec/dummy-apps/dummy-mongoid/config/application.rb
     def full_app_path 
