@@ -27,7 +27,7 @@ module Mengine
     # the orm_helper.rb is put in the root of the dummy app spec folder 
     def copy_orm_helper
       FileUtils.cp src_file, target_file
-      replace_content target_file, 'dummy_app_name', dummy_app_name
+      replace_content target_file, 'dummy_app_name', dummy_app.name
     end
 
     def copy_tests

@@ -1,3 +1,5 @@
+require 'rake'
+
 module Mengine
   module Base    
     def exec_command command
@@ -22,11 +24,7 @@ module Mengine
         orm
       end
     end
-    
-    def make_empty_dir name
-      empty_directory(name) unless File.directory?(name)
-    end
-    
+        
     def matching_dummy_apps
       dummy_apps.select {|app| matches_any_orm?(app, orms) }
     end

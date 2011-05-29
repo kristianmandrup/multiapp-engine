@@ -21,13 +21,15 @@ module Dummy
       return true if orms.empty?
       orms.any? {|orm| app =~ /#{orm}$/ }       
     end
-    
-    class_options.each do |clsopt|
-      class_eval %{
-        def #{clsopt}
-          options[:#{clsopt}]
-        end        
-      }
+
+    def self.included(base)      
+      base.class_options.each do |clsopt|
+        class_eval %{
+          def #{clsopt}
+            options[:#{clsopt}]
+          end        
+        }
+      end
     end
 
     def dummy_apps_dir

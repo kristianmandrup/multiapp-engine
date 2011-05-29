@@ -87,6 +87,10 @@ class MultiEngine < Thor::Group
 
         # set dummy app and add to dummies
         engine_config.create_dummy type, orm, app_args(orm)
+
+        # create an empty dummy folder in the test dir      
+        create_empty_dummy!
+        
          
         # go back to root of engine
         FileUtils.cd(destination_root)
@@ -115,6 +119,11 @@ class MultiEngine < Thor::Group
       self.engine_config = Mengine::EngineConfig.new destination_root, test_type
     end
 
+    # create empty dummy dir
+    def create_empty_dummy!
+      make_empty_dir(dummy_app.path)
+    end
+
     # used from inside template
     def application_definition
       engine_config.application_definition
@@ -140,6 +149,10 @@ class MultiEngine < Thor::Group
     def mongoid_configurator     
       Mengine::Orm::MongoidConfig
     end      
+
+    def make_empty_dir name
+      empty_directory(name) unless File.directory?(name)
+    end
 
     def orms
       @orms ||= !options[:orms].empty? ? options[:orms] : ['active_record']

@@ -6,12 +6,13 @@ module Mengine
       @_source_root ||= File.expand_path('../../templates', __FILE__)
     end
     
-    attr_accessor :root, :type, :orm, :option_args
+    attr_accessor :root, :type, :orm, :option_args, :test_type
 
-    def initialize root, type, orm, option_args
+    def initialize root, test_type, type, orm, option_args
       @root = root
       @type = type
       @orm = orm            
+      @test_type = test_type
       @option_args = option_args
     end
 
@@ -50,7 +51,7 @@ module Mengine
     # the path to the dummy app 
     # - fx spec/dummy-apps/dummy-mongoid
     def path    
-      File.join(test_type, apps_dir_name, dummy_app_name)
+      File.join(test_type, apps_dir_name, name)
     end        
 
     def orm_name
@@ -118,10 +119,6 @@ module Mengine
     def config_file file
       File.join config_path, file
     end
-
-    def test_type
-      rspec? ? "spec" : "test"
-    end        
 
     def apps_dir_name
       "dummy-apps"

@@ -1,8 +1,10 @@
 require 'dummy/sandbox'
+require 'mengine/base'
 
 # The main configuration of the engine to be built
 module Mengine #< Thor::Group
-  class EngineConfig
+  class EngineConfig 
+    
     attr_accessor :root_path, :test_type
 
     attr_accessor :dummies, :dummy
@@ -12,23 +14,20 @@ module Mengine #< Thor::Group
       @test_type = test_type      
     end        
 
-    # create empty dummy dir
-    def create_empty_dummy
-      make_empty_dir(dummy_app.path)
-    end
-
     def get_dummy name
       dummies[name]
+    end
+
+    def get_dummy_app name
+      get_dummy(name).dummy_app
     end
     
     # set current dummy app and also add it to list of dummies for later iteration 
     def create_dummy type, orm, args = []
-      self.dummy = Dummy.create root_path, type, orm, args
+      dum_app = DummyApp.new root_path, test_type, type, orm, args
+      self.dummy = Dummy.new dum_app
       self.dummies ||= {}      
-      dummies[dummy.name] = dummy
-
-      # create an empty dummy folder in the test dir      
-      create_empty_dummy
+      dummies[dummy_app.name] = dummy
     end
     
     # used from inside template
@@ -44,6 +43,8 @@ module Mengine #< Thor::Group
     
     def dummy_spec
       dummy.dummy_spec
-    end        
+    end 
+    
+    include Mengine::Base       
   end
 end
