@@ -34,8 +34,8 @@ module Dummy
       @_source_root ||= File.expand_path('../../templates', __FILE__)
     end
 
-    argument      :apps,      :type => :array,  :default => [], 
-                                :desc => "Dummy apps to export"
+    argument      :apps,      :type => :array,  :default => [], :required => false,
+                                :desc => "Dummy apps to act on"
 
     class_option  :sandbox,   :type => :string, :default => "~/rails-dummies", :aliases => "-s",
                                 :desc => "Where to sandbox rails dummy apps"
@@ -55,7 +55,10 @@ module Dummy
       self.destination_root = File.expand_path(destination_root)
     end
 
-    def sandbox_exec
+    def sandbox_exec 
+      say "Sandbox Command: #{command}"
+      say "Sandbox Apps: #{apps}"
+            
       export_apps matching_dummy_apps
 
       matching_dummy_apps.each do |dummy_app|
@@ -67,12 +70,12 @@ module Dummy
 
     protected
 
-    def export_apps apps
-      say "Export apps: #{apps}"
+    def export_apps exp_apps
+      say "Export apps: #{exp_apps}"
     end
 
-    def import_apps apps
-      say "Import apps: #{apps}"
+    def import_apps imp_apps
+      say "Import apps: #{imp_apps}"
     end
 
     def export_app
@@ -81,7 +84,7 @@ module Dummy
 
     def command_args
       args = [matching_dummy_apps]
-      args << "--sandbox #{sandbox}" if !sandbox.empty?
+      args << make_arg(:sandbox) if !sandbox.empty?
       args
     end
 
@@ -105,5 +108,3 @@ module Dummy
     include Dummy::Helper                
   end
 end
-
-

@@ -7,6 +7,6 @@ require "action_view/railtie"
 require "action_mailer/railtie"
 
 Bundler.require
-require "<%= underscored %>"
+require #underscored#
 
-<%= application_definition %>
+#application_definition#

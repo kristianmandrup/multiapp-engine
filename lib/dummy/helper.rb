@@ -1,5 +1,14 @@
+require 'active_support/inflector'
+
 module Dummy
   module Helper
+    def make_arg name, value = nil, escape = false
+      key = "--#{name.to_s.dasherize}"
+      val = value ? value : "#{send name}"
+      val = escape ? "'#{val}'" : val
+      [key, val].join(' ')
+    end
+    
     def sandbox_location
       @sandbox_location ||= sandbox || '~/rails-dummies'
     end      
@@ -13,8 +22,16 @@ module Dummy
       FileList.new "#{dummy_apps_dir}/dummy-*"
     end
 
+    def short_name name
+      name.gsub /.+\/(.+)$/, '\1'
+    end
+
+    def short_dummy_apps
+      dummy_apps.map {|path| short_name(path) }
+    end
+
     def matching_dummy_apps
-      dummy_apps.select {|app| matches_any_orm?(app, orms) }
+      short_dummy_apps.select {|app| matches_any_orm?(app, orms) }
     end
 
     def matches_any_orm? app, orms
@@ -26,8 +43,16 @@ module Dummy
       FileList.new "#{sandbox_location}/dummy-*"
     end
 
+    def short_sandbox_apps
+      sandbox_apps.map {|path| short_name(path) }
+    end
+
     def matching_sandbox_apps
-      sandbox_apps.select {|app| matches_any_orm?(app, orms) }
+      short_sandbox_apps.select {|app| matches_any_orm?(app, orms) }
+    end
+
+    def opts
+      options[:command]
     end
 
     def command

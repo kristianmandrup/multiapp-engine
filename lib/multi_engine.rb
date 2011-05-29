@@ -10,6 +10,7 @@ require "sugar-high/file"
 require 'fileutils'
 
 require "mengine/base"
+require "mengine/apps_matcher"
 require "mengine/engine_config"
 require "mengine/base"
 require "mengine/dummy"
@@ -17,8 +18,6 @@ require "mengine/dummy_app"
 require "mengine/dummy_spec"
 require "mengine/orm"          
 require "mengine/templates"  
-
-require 'mengine/generators/create_dummy_app'    
 
 require "dummy/install"   
 
@@ -110,7 +109,9 @@ class MultiEngine < Thor::Group
       apps_matching(orm).each do |name|    
         say "configuring #{name} app"        
         # create the dummy app for that orm
-        create_app! engine_config.get_dummy(name)
+        dummy = engine_config.get_dummy(name)
+        puts "dummy: #{dummy}"
+        create_app!(dummy) if dummy
       end
     end
   end
@@ -133,8 +134,8 @@ class MultiEngine < Thor::Group
 
     def create_rails_app dummy
       args = dummy.dummy_app.create_args
-      puts "args: #{args.inspect}"
-      invoke rails_app_generator, args
+      puts "run dummy create: #{args.inspect}"
+      run_dummy_generator :create, args
     end
 
     def rails_app_generator
@@ -145,7 +146,7 @@ class MultiEngine < Thor::Group
       case orm.to_sym 
       when :mongoid
         # puts gems into Gemfile and runs bundle to install them, then runs install and config generators
-        invoke install_generator, ["ALL --gems mongoid bson_ext --orms mongoid"] 
+        run_dummy_generator :install, ["ALL --gems mongoid bson_ext --orms mongoid"] 
       end
     end
     

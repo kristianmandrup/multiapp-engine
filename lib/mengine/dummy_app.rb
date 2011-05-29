@@ -1,10 +1,9 @@
+require 'active_support/inflector'
+require 'mengine/base'
+
 module Mengine
   class DummyApp 
-    include Thor::Actions # enable invoke and template actions etc.
-
-    def self.source_root
-      @_source_root ||= File.expand_path('../../templates', __FILE__)
-    end
+    include Mengine::Base
     
     attr_accessor :root, :type, :orm, :option_args, :test_type
 
@@ -29,7 +28,11 @@ module Mengine
     # full rails new command options
     # testing dir (spec or test)
     def create_args
-      [name, "--command-options '#{args_string}'", "--test-framework #{test_type}"]
+      args = []
+      args << make_arg(:apps, name)
+      args << make_arg(:opts, args_string, true)
+      # args << make_arg(:test_framework, test_type)
+      args
     end
     
     # the path to the dummy app 

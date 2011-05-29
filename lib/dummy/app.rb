@@ -18,10 +18,11 @@ module Dummy
   autoload :Sandbox ,   'dummy/sandbox'
   autoload :Update ,    'dummy/update'
   autoload :Helper ,    'dummy/helper'
+  autoload :Create ,    'dummy/create'
 
   class App < Thor::Group
     include Thor::Actions
-    check_unknown_options!
+    # check_unknown_options!
 
     def self.source_root
       @_source_root ||= File.expand_path('../templates', __FILE__)
@@ -32,6 +33,9 @@ module Dummy
 
     class_option  :sandbox,       :type => :string, :default => "~/rails-dummies", :aliases => "-s",
                                   :desc => "Where to sandbox rails dummy apps"
+
+    class_option  :apps,          :type => :array,  :default => [], :aliases => "-a",
+                                  :desc => "Dummy Apps to affect"
 
     class_option  :orms,          :type => :array,  :default => [], :aliases => "-o",
                                   :desc => "Only effect dummy apps matching these orms"
@@ -47,10 +51,16 @@ module Dummy
 
     class_option  :command,       :type => :string, :aliases => "-c",
                                   :desc => "Sandbox: run command in sandbox" 
+
+    class_option  :opts,          :type => :string, :aliases => "-o",
+                                    :desc => "Create: options to command" 
+
                                                               
     desc "Executes a command on one or more dummy apps"
 
-    def invoke_command
+    def invoke_command 
+      say "Command: #{command}"
+      
       if !has_dummy_apps_dir? 
         say "dummy must be run from the Rails application root", :red
         return
@@ -61,7 +71,7 @@ module Dummy
         return
       end
 
-      say "invoking #{app_command_class} #{app_args}", :green 
+      say "invoking #{app_command_class} #{app_args.inspect}", :green 
           
       invoke app_command_class, app_args
     end
@@ -69,7 +79,8 @@ module Dummy
     protected
     
     def app_args
-      args = case command_sym
+      args = apps.blank? ? [] : [apps] 
+      command_args = case command_sym
       when :sandbox
         make_arg :command
       when :export, :import
@@ -81,15 +92,17 @@ module Dummy
         make_arg :gems
       when :release
         make_arg :github
+      when :create
+        make_arg :opts
       end
-      args = [args]
+      args << command_args if command_args      
       args << make_arg(:sandbox) if !sandbox.empty?
       args << make_arg(:orms) if !orms.empty? 
       args
     end
 
-    def make_arg name
-      "--#{name} #{send name}"
+    def apps
+      options[:apps].empty? ? "" : options[:apps].join(' ')
     end
 
     def app_command_class
@@ -109,11 +122,11 @@ module Dummy
     end      
 
     def valid_commands
-      [:sandbox, :export, :import, :gems, :generate, :update, :install, :release]
+      [:sandbox, :export, :import, :gems, :generate, :update, :install, :release, :create]
     end
     
     def self.command_options
-      [:sandbox, :gems, :command, :github, :orms, :bundle]
+      [:sandbox, :gems, :command, :github, :orms, :bundle, :opts]
     end
 
     include Dummy::Helper        

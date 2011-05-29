@@ -28,7 +28,7 @@ module Dummy
     check_unknown_options!
 
     def self.source_root
-      @_source_root ||= File.expand_path('../templates', __FILE__)
+      @_source_root ||= File.expand_path('../../templates', __FILE__)
     end
 
     argument      :apps,     :type => :array,  :default => [], 
