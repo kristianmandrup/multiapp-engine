@@ -6,12 +6,36 @@ module Mengine
       @_source_root ||= File.expand_path('../../templates', __FILE__)
     end
     
-    attr_accessor :root, :type, :orm
+    attr_accessor :root, :type, :orm, :option_args
 
-    def initialize root, type, orm
+    def initialize root, type, orm, option_args
       @root = root
       @type = type
       @orm = orm            
+      @option_args = option_args
+    end
+
+    def execute!
+      # export empty dummy app to sandbox
+      # execute rails new command (in force mode)
+      # import dummy app back in
+      say "Creating #{type} dummy Rails app with #{orm_name}", :green
+      invoke sandbox_generator, ["--command \"#{command}\" --bundle true"]
+
+      say "Configuring Rails app"
+      # configure dummy app
+      change_config_files
+      # ensure dummy app class name is right
+      ensure_class_name
+    end
+
+    def sandbox_generator
+      Dummy::Sandbox
+    end
+
+    # rails new command to be executed to generate dummy app
+    def command
+      "rails new #{args_string} -f" # force overwrite
     end
     
     def name
@@ -21,18 +45,27 @@ module Mengine
         arr << orm
         arr.join('-')
       end
-    end
-
+    end     
+    
     # the path to the dummy app 
     # - fx spec/dummy-apps/dummy-mongoid
     def path    
       File.join(test_type, apps_dir_name, dummy_app_name)
     end        
 
+    def orm_name
+      case orm.to_sym
+      when :ar
+        'active_record'
+      else
+        orm
+      end      
+    end
+
     # change config files 'boot' and 'application' of dummy app
     def change_config_files
-      template "rails/boot.rb", "#{dummy_app.boot_file}", :force => true
-      template "rails/application.rb", "#{dummy_app.application_file}", :force => true
+      template "rails/boot.rb", "#{boot_file}", :force => true
+      template "rails/application.rb", "#{application_file}", :force => true
     end
 
     def remove_uneeded_rails_files
@@ -46,6 +79,14 @@ module Mengine
     
     def ensure_class_name
       File.replace_content_from application_file, :where => /Dummy\S+/, :with => class_name      
+    end
+
+    def args 
+      [path] + option_args
+    end
+
+    def args_string 
+      args.join(' ')
     end
     
     # class name of the dummy app

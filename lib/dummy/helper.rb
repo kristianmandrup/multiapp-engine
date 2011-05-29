@@ -18,6 +18,7 @@ module Dummy
     end
 
     def matches_any_orm? app, orms
+      return true if orms.empty?
       orms.any? {|orm| app =~ /#{orm}$/ }       
     end
     

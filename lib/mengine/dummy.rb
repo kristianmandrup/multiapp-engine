@@ -13,8 +13,8 @@ module Mengine
       @dummy_app = dummy_app      
     end        
     
-    def create root_path, type, orm
-      DummyApp.new root_path, type, orm
+    def create root_path, type, orm, args = []
+      DummyApp.new root_path, type, orm, args
     end      
 
     def orm 

@@ -8,14 +8,17 @@ require "rails/generators/rails/app/app_generator"
 
 require "sugar-high/file"
 require 'fileutils'
-require "mengine/base"
-require "mengine/templates"
-require "mengine/dummy"
-require "mengine/dummy_spec"
-require "mengine/dummy_app"
-require "mengine/orm"
 
-class MultiEngine < Thor::Group
+require "mengine/base"
+require "mengine/engine_config"
+require "mengine/base"
+require "mengine/dummy"
+require "mengine/dummy_app"
+require "mengine/dummy_spec"
+require "mengine/orm"          
+require "mengine/templates"      
+
+class MultiEngine < Thor::Group  
   include Thor::Actions
   check_unknown_options!
 
@@ -80,27 +83,11 @@ class MultiEngine < Thor::Group
      
     types.each do |type|
       say "Creating #{type} apps"
-      self.current_type = type
       orms.each do |orm|
 
         # set dummy app and add to dummies
-        engine_config.set_dummy type, orm, app_args
-
-        # create an empty dummy folder in the test dir
-        engine_config.create_empty_dummy
+        engine_config.create_dummy type, orm, app_args(orm)
          
-        # export empty dummy app to sandbox
-        # execute rails new command (in force mode)
-        # import dummy app back in
-        say "Creating #{type} dummy Rails app with #{orm_name}", :green
-        invoke sandbox_generator, ["--command \"#{command}\" --bundle true"]
-
-        say "Configuring Rails app"
-        # configure dummy app
-        change_config_files
-        # ensure dummy app class name is right
-        dummy_app.ensure_class_name
-
         # go back to root of engine
         FileUtils.cd(destination_root)
       end
@@ -120,35 +107,30 @@ class MultiEngine < Thor::Group
 
   protected
 
-    attr_accessor :args, :engine_config
+    attr_accessor :engine_config
 
     include Mengine::Base
 
     def create_engine_config
-      self.engine_config = Mengine::EngineConfig.new root_path, test_type
+      self.engine_config = Mengine::EngineConfig.new destination_root, test_type
     end
 
     # used from inside template
     def application_definition
       engine_config.application_definition
     end
+
+    def dummy_app
+      engine_config.dummy_app
+    end
   
-    def app_args
-      args = [dummy_app.path] # skip test unit
+    def app_args(orm)
+      args = []
       args << "-T" if skip_testunit?
       args << "-J" if skip_javascript?      
       # skip active record is orm is set to another datastore      
-      args << "-O" if !active_record?
+      args << "-O" if !active_record?(orm)
       args
-    end
-
-    # rails new command to be executed to generate dummy app
-    def command args
-      "rails new #{args.join(' ')} -f" # force overwrite
-    end
-
-    def sandbox_generator
-      Dummy::Sandbox
     end
     
     def install_generator
@@ -167,12 +149,16 @@ class MultiEngine < Thor::Group
       @types ||= !options[:types].empty? ? options[:types] : [""]
     end
 
-    def root_path 
+    def mengine_root_path 
       File.dirname(__FILE__)
     end
 
     def test_helper_path
       File.join(root_path, 'test_helpers', test_type).gsub /.+\/\//, ''
+    end
+
+    def active_record? orm
+      ['active_record', 'ar'].include?(orm)
     end
 
     def test_type

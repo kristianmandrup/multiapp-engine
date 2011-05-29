@@ -9,7 +9,6 @@ require "rails/generators/rails/app/app_generator"
 require "sugar-high/file"
 require 'fileutils'
 
-
 module Dummy
   autoload :Export,     'dummy/export'
   autoload :Generate,   'dummy/generate'
@@ -18,6 +17,7 @@ module Dummy
   autoload :Release,    'dummy/release'
   autoload :Sandbox ,   'dummy/sandbox'
   autoload :Update ,    'dummy/update'
+  autoload :Helper ,    'dummy/helper'
 
   class App < Thor::Group
     include Thor::Actions

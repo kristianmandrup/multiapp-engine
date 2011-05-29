@@ -22,6 +22,7 @@ require 'fileutils'
 module Dummy
   autoload :Export,     'dummy/export'
   autoload :Import,     'dummy/import'
+  autoload :Helper,     'dummy/helper'
 
   class Sandbox < Thor::Group
     include Thor::Actions
@@ -50,7 +51,7 @@ module Dummy
     end
 
     def sandbox_exec
-      .each do |dummy_app|
+      matching_dummy_apps.each do |dummy_app|
         export_app dummy_app        
         exec command
         import_app dummy_app

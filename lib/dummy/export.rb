@@ -19,7 +19,9 @@ require 'fileutils'
 # This functionality should be integrated into _export_ and _import_ commands of the *dummy* executable (and DummyApp generator).
 # @dummy export cancan_active_record ~/rails-dummies [--bundle]@
 
-module Dummy
+module Dummy     
+  autoload :Helper,     'dummy/helper'
+  
   class Export < Thor::Group
     include Thor::Actions
     check_unknown_options!

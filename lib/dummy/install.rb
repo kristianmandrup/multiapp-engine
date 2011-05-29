@@ -9,9 +9,6 @@ require "rails/generators/rails/app/app_generator"
 require "sugar-high/file"
 require 'fileutils'
 
-require 'dummy/export'
-require 'dummy/import'
-
 # The problem is, that the rails command doesn't work right within a directory with its own Gemfile. 
 # You need to first export the app to a sandbox, then run any bundle or rails commands:
 
@@ -22,7 +19,11 @@ require 'dummy/import'
 # This functionality should be integrated into _export_ and _import_ commands of the *dummy* executable (and DummyApp generator).
 # @dummy export cancan_active_record ~/rails-dummies [--bundle]@
 
-module Dummy
+module Dummy      
+  autoload :Export,     'dummy/export'
+  autoload :Import,     'dummy/import'
+  autoload :Helper,     'dummy/helper'
+  
   class Install < Thor::Group
     include Thor::Actions
     check_unknown_options!
@@ -49,18 +50,17 @@ module Dummy
       self.destination_root = File.expand_path(destination_root)
     end
 
-    def sandbox_exec
-        export_apps
+    def sandbox_exec      
+      export_apps
 
-        matching_dummy_apps.each do |app|
-          FileUtils.cd sandbox_app_dir(app)
-          insert_gems_for
-          bundle_install
-          install_gems
-        end
+      matching_dummy_apps.each do |app|
+        FileUtils.cd sandbox_app_dir(app)
+        insert_gems_for
+        bundle_install
+        install_gems
+      end
 
-        import_apps
-      end            
+      import_apps
     end
 
     protected

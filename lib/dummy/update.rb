@@ -9,8 +9,6 @@ require "rails/generators/rails/app/app_generator"
 require "sugar-high/file"
 require 'fileutils'
 require 'mengine/base'
-require 'dummy/export'
-require 'dummy/import'
 
 # The problem is, that the rails command doesn't work right within a directory with its own Gemfile. 
 # You need to first export the app to a sandbox, then run any bundle or rails commands:
@@ -23,6 +21,10 @@ require 'dummy/import'
 # @dummy export cancan_active_record ~/rails-dummies [--bundle]@
 
 module Dummy
+  autoload :Export,     'dummy/export'
+  autoload :Import,     'dummy/import'
+  autoload :Helper,     'dummy/helper'
+
   class Update < Thor::Group
     include Thor::Actions
     check_unknown_options!

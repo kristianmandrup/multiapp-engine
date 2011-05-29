@@ -20,6 +20,8 @@ require 'fileutils'
 # @dummy export cancan_active_record ~/rails-dummies [--bundle]@
 
 module Dummy
+  autoload :Helper,     'dummy/helper'
+  
   class Release < Thor::Group
     include Thor::Actions
     check_unknown_options!
