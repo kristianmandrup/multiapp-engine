@@ -16,27 +16,5 @@ module Mengine
     def orm 
       dummy_app.orm
     end
-
-    def configure!
-      configure_orm
-      install_gems
-    end      
-          
-    def install_gems
-      case orm.to_sym 
-      when :mongoid
-        # puts gems into Gemfile and runs bundle to install them, then runs install and config generators
-        invoke install_generator, ["ALL --gems mongoid bson_ext --orms mongoid"] 
-      end
-    end
-    
-    def configure_orm
-      case orm.to_sym 
-      when :mongoid
-        mongoid_configurator.new app_name
-      end
-      say "Configuring testing framework for #{orm}"      
-      Mengine::Orm.new(dummy).set_orm_helpers      
-    end        
   end
 end

@@ -41,6 +41,11 @@ module Dummy
 
     class_option  :orms,     :type => :array, :default => [], :aliases => "-o",
                                 :desc => "Orms to match on dummy apps" 
+
+
+    # figure out depending on which directory already exists!
+    # class_option :test_framework, :default => "rspec", :aliases => "-t",
+    #                               :desc => "Test framework to use. test_unit or rspec."
                                                               
     desc "Run a command on a dummy app in the sandbox"
 

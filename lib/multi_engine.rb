@@ -16,7 +16,9 @@ require "mengine/dummy"
 require "mengine/dummy_app"
 require "mengine/dummy_spec"
 require "mengine/orm"          
-require "mengine/templates"      
+require "mengine/templates"  
+
+require 'mengine/generators/create_dummy_app'    
 
 class MultiEngine < Thor::Group  
   include Thor::Actions
@@ -81,30 +83,38 @@ class MultiEngine < Thor::Group
     say "Vendoring Rails applications at #{test_path}/dummy-apps"
     create_engine_config
      
-    types.each do |type|
-      say "Creating #{type} apps"
+    types.each do |type| 
+      postfix = types.size > 1 ? "apps" : ""
+      say "Creating dummy #{type} #{postfix}"
       orms.each do |orm|
+        say "ORM #{orm}"
 
         # set dummy app and add to dummies
         engine_config.create_dummy type, orm, app_args(orm)
 
+        say "Create empty dummy app"
         # create an empty dummy folder in the test dir      
         create_empty_dummy!
-        
-         
-        # go back to root of engine
-        FileUtils.cd(destination_root)
       end
     end
   end
   
   def configure_app_for_orms
+    say "Configuring apps for orms"
     # for each orm
     orms.each do |orm|
+      say "ORM #{orm}"
       # find dummy apps matching orm, and for each
       apps_matching(orm).each do |name|    
-        # configure the dummy app for that orm
-        engine_config.get_dummy(name).configure!
+        say "configuring #{name} app"        
+        # create the dummy app for that orm
+        dummy = engine_config.get_dummy(name)
+        if dummy
+          dummy.create_app!
+        else
+          say "No dummy found, named: #{name}"
+          say "dummies: #{engine_config.dummies.inspect}"
+        end
       end
     end
   end
@@ -114,6 +124,41 @@ class MultiEngine < Thor::Group
     attr_accessor :engine_config
 
     include Mengine::Base
+
+    def create_app!      
+      # run rails new generator
+      create_rails_app
+      # configure for orm
+      configure_orm
+      # install gems
+      install_gems
+    end      
+
+    def create_rails_app 
+      invoke rails_app_generator, dummy_app.create_args
+    end
+
+    def rails_app_generator
+      Mengine::Generators::CreateDummyApp
+    end
+          
+    def install_gems
+      case orm.to_sym 
+      when :mongoid
+        # puts gems into Gemfile and runs bundle to install them, then runs install and config generators
+        invoke install_generator, ["ALL --gems mongoid bson_ext --orms mongoid"] 
+      end
+    end
+    
+    def configure_orm
+      case orm.to_sym 
+      when :mongoid
+        mongoid_configurator.new app_name
+      end
+      say "Configuring testing framework for #{orm}"      
+      Mengine::Orm.new(dummy).set_orm_helpers      
+    end        
+
 
     def create_engine_config
       self.engine_config = Mengine::EngineConfig.new destination_root, test_type
@@ -178,6 +223,10 @@ class MultiEngine < Thor::Group
       rspec? ? "spec" : "test"
     end
     alias_method :test_path, :test_type
+
+    def apps_dir_name
+      "dummy-apps"
+    end
 
     def skip_testunit?
       options[:tu]
