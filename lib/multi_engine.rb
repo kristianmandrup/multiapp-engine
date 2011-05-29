@@ -20,6 +20,8 @@ require "mengine/templates"
 
 require 'mengine/generators/create_dummy_app'    
 
+require "dummy/install"   
+
 class MultiEngine < Thor::Group  
   include Thor::Actions
   check_unknown_options!
@@ -108,13 +110,7 @@ class MultiEngine < Thor::Group
       apps_matching(orm).each do |name|    
         say "configuring #{name} app"        
         # create the dummy app for that orm
-        dummy = engine_config.get_dummy(name)
-        if dummy
-          dummy.create_app!
-        else
-          say "No dummy found, named: #{name}"
-          say "dummies: #{engine_config.dummies.inspect}"
-        end
+        create_app! engine_config.get_dummy(name)
       end
     end
   end
@@ -124,18 +120,21 @@ class MultiEngine < Thor::Group
     attr_accessor :engine_config
 
     include Mengine::Base
+    include Mengine::AppsMatcher
 
-    def create_app!      
+    def create_app! dummy
       # run rails new generator
-      create_rails_app
+      create_rails_app dummy
       # configure for orm
-      configure_orm
-      # install gems
-      install_gems
+      # configure_orm dummy
+      # # install gems
+      # install_gems dummy
     end      
 
-    def create_rails_app 
-      invoke rails_app_generator, dummy_app.create_args
+    def create_rails_app dummy
+      args = dummy.dummy_app.create_args
+      puts "args: #{args.inspect}"
+      invoke rails_app_generator, args
     end
 
     def rails_app_generator
@@ -150,13 +149,13 @@ class MultiEngine < Thor::Group
       end
     end
     
-    def configure_orm
+    def configure_orm dummy
       case orm.to_sym 
       when :mongoid
-        mongoid_configurator.new app_name
+        mongoid_configurator.new dummy
       end
       say "Configuring testing framework for #{orm}"      
-      Mengine::Orm.new(dummy).set_orm_helpers      
+      Mengine::Orm.new(dummy).set_orm_helpers
     end        
 
 
@@ -188,7 +187,7 @@ class MultiEngine < Thor::Group
     end
     
     def install_generator
-      Dummy::Install
+      ::Dummy::Install
     end      
 
     def mongoid_configurator     

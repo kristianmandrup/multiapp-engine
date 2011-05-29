@@ -25,8 +25,11 @@ module Mengine
       end
     end     
 
+    # name of dummy app
+    # full rails new command options
+    # testing dir (spec or test)
     def create_args
-      cargs = ["--command \"#{args_string}\" -t #{test_type}"]
+      [name, "--command-options '#{args_string}'", "--test-framework #{test_type}"]
     end
     
     # the path to the dummy app 
@@ -55,12 +58,8 @@ module Mengine
       File.replace_content_from application_file, :where => /Dummy\S+/, :with => class_name      
     end
 
-    def args 
-      [path] + option_args
-    end
-
     def args_string 
-      args.join(' ')
+      option_args.join(' ')
     end
     
     # class name of the dummy app

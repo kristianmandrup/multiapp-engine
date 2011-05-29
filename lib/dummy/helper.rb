@@ -22,15 +22,35 @@ module Dummy
       orms.any? {|orm| app =~ /#{orm}$/ }       
     end
 
-    def self.included(base)      
-      base.class_options.each do |clsopt|
-        class_eval %{
-          def #{clsopt}
-            options[:#{clsopt}]
-          end        
-        }
-      end
+    def sandbox_apps
+      FileList.new "#{sandbox_location}/dummy-*"
     end
+
+    def matching_sandbox_apps
+      sandbox_apps.select {|app| matches_any_orm?(app, orms) }
+    end
+
+    def command
+      options[:command]
+    end
+
+    def orms
+      options[:orms]
+    end
+
+    def sandbox
+      options[:sandbox]
+    end
+
+    # def self.included(base)      
+    #   base.class_options.each do |clsopt|
+    #     class_eval %{
+    #       def #{clsopt}
+    #         options[:#{clsopt}]
+    #       end        
+    #     }
+    #   end
+    # end
 
     def dummy_apps_dir
       File.join(destination_root, dummy_apps_dir_relative)

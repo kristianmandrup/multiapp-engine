@@ -6,10 +6,14 @@ module Mengine
       Kernel::system command
     end    
 
-    def exec command
-      inside sandbox_location do
+    def exec app_name, command
+      inside sandbox_app_path(app_name) do
         Kernel::system command
       end
+    end
+
+    def sandbox_app_path name
+      File.join(sandbox_location, name)
     end
 
     def bundle_update
@@ -23,26 +27,6 @@ module Mengine
       else
         orm
       end
-    end
-        
-    def matching_dummy_apps
-      dummy_apps.select {|app| matches_any_orm?(app, orms) }
-    end
-
-    def apps_matching orm
-      dummy_apps.select {|app| app =~ /#{orm}$/ }       
-    end
-
-    def matches_any_orm? app, orms
-      orms.any? {|orm| app =~ /#{orm}$/ }       
-    end
-
-    def dummy_apps_path 
-      File.join(test_type, apps_dir_name)
-    end
-
-    def dummy_apps
-      FileList.new File.join(dummy_apps_path, "dummy-*")
     end        
   end
 end
