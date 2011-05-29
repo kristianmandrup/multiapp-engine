@@ -17,8 +17,6 @@ module Mengine
 
     def app_specs_dir
       "app-specs"
-    end
-        
-    extend self
+    end        
   end
 end

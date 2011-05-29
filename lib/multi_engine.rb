@@ -60,8 +60,10 @@ class MultiEngine < Thor::Group
     self.destination_root = File.expand_path(path, destination_root)
     set_accessors!
 
-    directory "root", "."
-    FileUtils.cd(destination_root)
+    directory "root", "."          
+
+    # Remove use of FileUtils explicitly - instead include SugarHigh module with file DSL :)
+    FileUtils.cd(destination_root) 
   end
 
   def create_tests_or_specs
@@ -110,7 +112,7 @@ class MultiEngine < Thor::Group
     orms.each do |orm|
       # find dummy apps matching orm, and for each
       apps_matching(orm).each do |name|    
-        configure the dummy app for that orm
+        # configure the dummy app for that orm
         engine_config.get_dummy(name).configure!
       end
     end

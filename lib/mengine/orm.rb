@@ -31,9 +31,7 @@ module Mengine
     end
 
     def copy_tests
-      test_files.each do |file|
-        handle_test_file(file)
-      end
+      test_files.each {|file| handle_test_file(file)}
     end
 
     def test_files
@@ -52,7 +50,7 @@ module Mengine
 
     def replace_orm_in_files *files
       inside dummy_spec.path do
-        files.each do {|file| replace_orm_in file}
+        files.each {|file| replace_orm_in file}
       end
     end
 

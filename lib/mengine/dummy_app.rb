@@ -88,8 +88,6 @@ module Mengine
 
     def dummy_prefix
       "dummy"
-    end
-    
-    extend self
+    end    
   end
 end

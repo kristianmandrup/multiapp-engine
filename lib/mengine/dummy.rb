@@ -21,7 +21,7 @@ module Mengine
       dummy_app.orm
     end
 
-    def configure
+    def configure!
       configure_orm
       install_gems
     end      
