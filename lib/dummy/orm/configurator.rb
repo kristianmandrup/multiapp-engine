@@ -19,7 +19,7 @@ module Dummy
       end
 
       def configure_orm_helpers!
-        create_integration_spec_folder        
+        create_integration_spec_folder                
         copy_orm_helper
         copy_tests
         configure_specific_orm
@@ -34,8 +34,8 @@ module Dummy
 
       def configure_specific_orm
         include_for_orm
-        meth = orm_config_method(orm)
-        send(meth) if respond_to?(meth)
+        remove_default_ar_config
+        send orm_config_method(orm) if respond_to? orm_config_method(orm)
       end
 
       def orm_config_method
@@ -59,7 +59,7 @@ module Dummy
       end
 
       def active_record?
-        !orm || ['active_record', 'ar'].include?(orm)
+        orm.to_sym == :active_record
       end
       
       def orm 

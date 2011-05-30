@@ -8,9 +8,8 @@ module Mengine
   class DummyApp 
     include Mengine::Base
     
-    attr_accessor :engine_config, :type, :orm, :option_args
-
-    attr_reader   :sandbox, :engine_app
+    attr_reader :engine_config, :app_name, :option_args
+    attr_reader  :sandbox, :engine_app, :argumentor
 
     def initialize engine_config, app_name, orm, option_args
       @engine_config = engine_config
@@ -41,8 +40,8 @@ module Mengine
       engine_config.test_framework
     end
     
-    def orm_name
-      translate orm
+    def orm
+      translate @orm
     end
         
     def dummy_prefix

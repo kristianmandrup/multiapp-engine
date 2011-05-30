@@ -20,7 +20,11 @@ module Dummy
       def handle_test_file file
         return if File.exist?(file)
         copy_test_file file
-        replace_orm_in file
+        replacer.replace_orm_in file
+      end
+
+      def replacer
+        @replacer ||= Replacer.new engine_config.dummy
       end
 
       def templates
