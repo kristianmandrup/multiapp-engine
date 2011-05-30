@@ -28,6 +28,9 @@ module Dummy
     class_option  :test_framework,  :type => :string,  :default => "rspec", :aliases => "-t",
                                       :desc => "Test framework to use. test_unit or rspec."
 
+    class_option  :sandbox,   :type => :string, :default => nil, :aliases => "-s",
+                                :desc => "Where to sandbox rails dummy apps"
+
     def execute!     
       say "Command options: #{opts}, apps: #{apps}"
       # export empty dummy app to sandbox
@@ -94,6 +97,11 @@ module Dummy
 
     def opts
       options[:opts]
+    end
+
+    # used from inside template
+    def application_definition
+      engine_config.application_definition
     end
 
     # the path to the dummy app 

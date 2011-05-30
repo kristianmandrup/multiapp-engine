@@ -19,6 +19,7 @@ module Dummy
   autoload :Update ,    'dummy/update'
   autoload :Helper ,    'dummy/helper'
   autoload :Create ,    'dummy/create'
+  autoload :OrmConf ,   'dummy/orm_conf'
 
   class App < Thor::Group
     include Thor::Actions
@@ -31,7 +32,7 @@ module Dummy
     argument      :app_command,   :type => :string, :default => 'sandbox', 
                                   :desc => "Dummy App command: sandbox, export, import, gems, generate, update, release"
 
-    class_option  :sandbox,       :type => :string, :default => "~/rails-dummies", :aliases => "-s",
+    class_option  :sandbox,       :type => :string, :default => nil, :aliases => "-s",
                                   :desc => "Where to sandbox rails dummy apps"
 
     class_option  :apps,          :type => :array,  :default => [], :aliases => "-a",
@@ -94,6 +95,8 @@ module Dummy
         make_arg :github
       when :create
         make_arg :opts
+      when :ormconf
+        nil        
       end
       args << command_args if command_args      
       args << make_arg(:sandbox) if !sandbox.empty?
@@ -122,7 +125,7 @@ module Dummy
     end      
 
     def valid_commands
-      [:sandbox, :export, :import, :gems, :generate, :update, :install, :release, :create]
+      [:sandbox, :export, :import, :gems, :generate, :update, :install, :release, :create, :ormconf]
     end
     
     def self.command_options

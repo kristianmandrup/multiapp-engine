@@ -10,7 +10,7 @@ module Dummy
     end
     
     def sandbox_location
-      @sandbox_location ||= sandbox || '~/rails-dummies'
+      @sandbox_location ||= sandbox || File.expand_path('~/rails-dummies')
     end      
 
     def bundle_install bundle = nil
@@ -18,39 +18,6 @@ module Dummy
       exec 'bundle' if bundle
     end
     
-    def dummy_apps
-      FileList.new "#{dummy_apps_dir}/dummy-*"
-    end
-
-    def short_name name
-      name.gsub /.+\/(.+)$/, '\1'
-    end
-
-    def short_dummy_apps
-      dummy_apps.map {|path| short_name(path) }
-    end
-
-    def matching_dummy_apps
-      short_dummy_apps.select {|app| matches_any_orm?(app, orms) }
-    end
-
-    def matches_any_orm? app, orms
-      return true if orms.empty?
-      orms.any? {|orm| app =~ /#{orm}$/ }       
-    end
-
-    def sandbox_apps
-      FileList.new "#{sandbox_location}/dummy-*"
-    end
-
-    def short_sandbox_apps
-      sandbox_apps.map {|path| short_name(path) }
-    end
-
-    def matching_sandbox_apps
-      short_sandbox_apps.select {|app| matches_any_orm?(app, orms) }
-    end
-
     def opts
       options[:command]
     end

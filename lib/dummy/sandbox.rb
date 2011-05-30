@@ -37,7 +37,7 @@ module Dummy
     argument      :apps,      :type => :array,  :default => [], :required => false,
                                 :desc => "Dummy apps to act on"
 
-    class_option  :sandbox,   :type => :string, :default => "~/rails-dummies", :aliases => "-s",
+    class_option  :sandbox,   :type => :string, :default => nil, :aliases => "-s",
                                 :desc => "Where to sandbox rails dummy apps"
 
     class_option  :orms,      :type => :array, :default => [], :aliases => "-o",
@@ -58,24 +58,61 @@ module Dummy
     def sandbox_exec 
       say "Sandbox Command: #{command}"
       say "Sandbox Apps: #{apps}"
-            
-      export_apps matching_dummy_apps
+      puts "matching apps: #{matching_dummy_apps}"      
+      apps = matching_dummy_apps
+      export_apps apps
 
-      matching_dummy_apps.each do |dummy_app|
+      apps.each do |dummy_app|
         exec command
       end            
       
-      import_apps matching_dummy_apps
+      import_apps apps
     end
 
     protected
 
     def export_apps exp_apps
       say "Export apps: #{exp_apps}"
+      exp_apps.each do |app|   
+        src = dummy_app_path(app)
+        target = sandbox_app_path
+        puts "src: #{src}, targ: #{target}"
+        sandbox_app_dir = sandbox_app_path(short_name app)
+        if File.directory?(sandbox_app_dir)
+          puts "removed in sandbox"
+          FileUtils.rm_rf(sandbox_app_dir) 
+        end                                 
+        if File.directory?(src) && File.directory?(target)
+          puts "moved to sandbox"
+          FileUtils.mv(src, sandbox_app_path) 
+        end
+      end
+    end
+
+    def dummy_app_path name
+      File.join(dummy_apps_path, name)
+    end
+
+    def dummy_apps_path
+      File.join(destination_root, "spec/dummy-apps")
     end
 
     def import_apps imp_apps
       say "Import apps: #{imp_apps}"
+      imp_apps.each do |app|
+        src = sandbox_app_path(short_name app)
+        target = dummy_apps_path
+
+        puts "scr #{src} not found" if !File.directory?(src) 
+        puts "target #{target} not found" if !File.directory?(target)
+
+        if File.directory?(src) && File.directory?(target)
+          puts "moving from sandbox"
+          FileUtils.mv src, target
+        else
+          puts "not found!"
+        end
+      end      
     end
 
     def export_app

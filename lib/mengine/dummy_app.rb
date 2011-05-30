@@ -1,18 +1,27 @@
-require 'active_support/inflector'
+# require 'active_support/inflector'
 require 'mengine/base'
+require 'mengine/dummy_app/sandbox'
+require 'mengine/dummy_app/engine_app'
+require 'mengine/dummy_app/argumentor'
 
 module Mengine
   class DummyApp 
     include Mengine::Base
     
-    attr_accessor :root, :type, :orm, :option_args, :test_type
+    attr_accessor :engine_config, :type, :orm, :option_args
 
-    def initialize root, test_type, type, orm, option_args
-      @root = root
+    attr_reader   :sandbox, :engine_app
+
+    def initialize engine_config, type, orm, option_args
+      @engine_config = engine_config
+
       @type = type
-      @orm = orm            
-      @test_type = test_type
+      @orm = orm                  
       @option_args = option_args
+
+      @sandbox = Sandbox.new engine_config, self
+      @engine_app = EngineApp.new engine_config, self 
+      @argumentor = Argumentor.new self
     end
     
     def name
@@ -24,53 +33,14 @@ module Mengine
       end
     end     
 
-    # name of dummy app
-    # full rails new command options
-    # testing dir (spec or test)
-    def create_args
-      args = []
-      args << make_arg(:apps, name)
-      args << make_arg(:opts, args_string, true)
-      # args << make_arg(:test_framework, test_type)
-      args
+    def test_framework
+      engine_config.test_framework
     end
     
-    # the path to the dummy app 
-    # - fx spec/dummy-apps/dummy-mongoid
-    def path    
-      File.join(dummy_apps_path, name)
-    end
-    alias_method :full_name, :path        
-
-    def dummy_apps_path 
-      File.join(test_type, apps_dir_name)
-    end
-
     def orm_name
-      case orm.to_sym
-      when :ar
-        'active_record'
-      else
-        orm
-      end      
+      translate orm
     end
-
-    # rails new command to be executed to generate dummy app
-    
-    def args_string 
-      option_args.join(' ')
-    end
-    
-    # the full path to the dummy app dir
-    # - fx /.../myengine/spec/dummy-apps/dummy-mongoid/config/application.rb
-    def full_app_path 
-      File.expand_path(application_file, root)
-    end
-    
-    def apps_dir_name
-      "dummy-apps"
-    end
-
+        
     def dummy_prefix
       "dummy"
     end    

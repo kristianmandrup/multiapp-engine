@@ -48,7 +48,7 @@ class MultiEngine < Thor::Group
   class_option :orms, :type => :array, :default => [],
                                 :desc => "Datastore frameworks to use. mongoid or active_record."
 
-  class_option :types, :type => :array, :default => [], 
+  class_option :apps, :type => :array, :default => [], 
                                 :desc => "Dummy application names"
 
   class_option :tu,  :type => :boolean, :default => true,
@@ -56,6 +56,9 @@ class MultiEngine < Thor::Group
 
   class_option :js,  :type => :boolean, :default => true,
                                 :desc => "Skip javascript generation for dummy apps."
+
+  class_option  :sandbox,   :type => :string, :default => "~/rails-dummies", :aliases => "-s",
+                              :desc => "Where to sandbox rails dummy apps"
 
   
   desc "Creates a Rails 3 engine with Rakefile, Gemfile and running tests."
@@ -81,19 +84,17 @@ class MultiEngine < Thor::Group
   end
 
   def invoke_rails_app_generators
-    say "Vendoring Rails applications at #{test_path}/dummy-apps"
-    create_engine_config
-     
-    types.each do |type| 
+    say "Vendoring Rails applications in #{test_folder}/#{dummy_container}"
+
+    apps.each do |type| 
       postfix = types.size > 1 ? "apps" : ""
       say "Creating dummy #{type} #{postfix}"
       orms.each do |orm|
         say "ORM #{orm}"
 
         # set dummy app and add to dummies
-        engine_config.create_dummy type, orm, app_args(orm)
+        engine_config.create_dummy type, orm, rails_new_option_args(orm)
 
-        say "Create empty dummy app"
         # create an empty dummy folder in the test dir      
         create_empty_dummy!
       end
@@ -105,80 +106,73 @@ class MultiEngine < Thor::Group
     # for each orm
     orms.each do |orm|
       say "ORM #{orm}"
-      # find dummy apps matching orm, and for each
-      apps_matching(orm).each do |name|    
-        say "configuring #{name} app"        
+      # in engine find dummy apps matching orm, and for each
+      engine_apps.apps_matcher.apps_matching(orm).each do |name|    
+        say "Configuring #{name} app"        
         # create the dummy app for that orm
-        dummy = engine_config.get_dummy(name)
-        puts "dummy: #{dummy}"
-        create_app!(dummy) if dummy
+        self.active_dummy = engine_config.get_dummy(name)
+        create_app! if active_dummy
       end
     end
   end
 
   protected
 
-    attr_accessor :engine_config
+    attr_reader :active_dummy
 
-    include Mengine::Base
-    include Mengine::AppsMatcher
-
-    def create_app! dummy
-      # run rails new generator
-      create_rails_app dummy
-      # configure for orm
-      # configure_orm dummy
-      # # install gems
-      # install_gems dummy
-    end      
-
-    def create_rails_app dummy
-      args = dummy.dummy_app.create_args
-      puts "run dummy create: #{args.inspect}"
-      run_dummy_generator :create, args
+    def sandbox
+      @sandbox ||= Mengine::Sandbox.new sandbox_root_path, :orms => orms, :apps => apps
     end
 
-    def rails_app_generator
-      Mengine::Generators::CreateDummyApp
+    def engine_apps
+      @engine_apps ||= Mengine::EngineApps.new destination_root, test_folder, :orms => orms, :apps => apps
     end
-          
-    def install_gems
-      case orm.to_sym 
-      when :mongoid
-        # puts gems into Gemfile and runs bundle to install them, then runs install and config generators
-        run_dummy_generator :install, ["ALL --gems mongoid bson_ext --orms mongoid"] 
-      end
+
+    def engine_config
+      @engine_config ||= Mengine::EngineConfig.new destination_root, test_framework, sandbox, engine_apps
     end
     
-    def configure_orm dummy
-      case orm.to_sym 
-      when :mongoid
-        mongoid_configurator.new dummy
-      end
-      say "Configuring testing framework for #{orm}"      
-      Mengine::Orm.new(dummy).set_orm_helpers
-    end        
+    include Mengine::Base
+    
+    def create_app!
+      # run rails new generator
+      create_rails_app
+      # configure for orm
+      configure_orm
+    end      
 
+    # CREATE RAILS APP
 
-    def create_engine_config
-      self.engine_config = Mengine::EngineConfig.new destination_root, test_type
+    def create_rails_app
+      run_dummy_generator :create, create_gen_arguments
     end
+             
+    def create_gen_arguments
+      active_dummy.argumentor.generator_arguments_for :create
+    end
+    
+    # CONFIGURE ORM
+
+    def configure_orm
+      run_dummy_generator :ormconf, ormconf_gen_arguments
+    end
+
+    def ormconf_gen_arguments
+      active_dummy.argumentor.generator_arguments_for :ormconf
+    end
+
+    # FILE HELPERS
 
     # create empty dummy dir
-    def create_empty_dummy!
-      make_empty_dir(dummy_app.path)
-    end
-
-    # used from inside template
-    def application_definition
-      engine_config.application_definition
+    def create_empty_dummy!   
+      make_empty_dir(dummy_app.sandbox.dummy_path)
     end
 
     def dummy_app
-      engine_config.dummy_app
+      active_dummy.dummy_app
     end
   
-    def app_args(orm)
+    def rails_new_option_args(orm)
       args = []
       args << "-T" if skip_testunit?
       args << "-J" if skip_javascript?      
@@ -187,45 +181,43 @@ class MultiEngine < Thor::Group
       args
     end
     
-    def install_generator
-      ::Dummy::Install
-    end      
-
-    def mongoid_configurator     
-      Mengine::Orm::MongoidConfig
-    end      
-
-    def make_empty_dir name
-      empty_directory(name) unless File.directory?(name)
+    def make_empty_dir dir
+      empty_directory(dir) unless File.directory?(dir)
     end
 
-    def orms
-      @orms ||= !options[:orms].empty? ? options[:orms] : ['active_record']
-    end
-
-    def types
-      @types ||= !options[:types].empty? ? options[:types] : [""]
-    end
-
-    def mengine_root_path 
-      File.dirname(__FILE__)
+    def mengine_root_path
+      File.expand_path('../', __FILE__)
     end
 
     def test_helper_path
-      File.join(root_path, 'test_helpers', test_type).gsub /.+\/\//, ''
+      File.join(mengine_root_path, 'test_helpers', test_folder).gsub /.+\/\//, ''
     end
 
     def active_record? orm
       ['active_record', 'ar'].include?(orm)
     end
 
-    def test_type
+    def test_folder
       rspec? ? "spec" : "test"
     end
-    alias_method :test_path, :test_type
 
-    def apps_dir_name
-      "dummy-apps"
+    def dummy_container
+      Mengine::EngineApps.dummy_apps_container
+    end
+
+    # OPTION HELPERS
+
+    # the container folder of dummy apps in the sandbox, outside the engine
+    def sandbox_root_path
+      File.expand_path options[:sandbox]      
+    end
+
+    def orms
+      @orms ||= !options[:orms].empty? ? options[:orms] : ['active_record']
+    end
+
+    def apps
+      @apps ||= !options[:apps].empty? ? options[:apps] : [nil]
     end
 
     def skip_testunit?

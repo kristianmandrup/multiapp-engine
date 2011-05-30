@@ -5,13 +5,14 @@ require 'mengine/base'
 module Mengine #< Thor::Group
   class EngineConfig 
     
-    attr_accessor :root_path, :test_type
-
-    attr_accessor :dummies, :dummy
+    attr_reader :root_path, :test_framework, :sandbox, :engine_apps
+    attr_reader :dummies,   :active_dummy
     
-    def initialize root_path, test_type
+    def initialize root_path, test_framework, sandbox, engine_apps
       @root_path = root_path
-      @test_type = test_type      
+      @test_framework = test_framework      
+      @sandbox = sandbox
+      @engine_apps = engine_apps 
       @dummies = {}      
     end        
 
@@ -24,23 +25,11 @@ module Mengine #< Thor::Group
     end
     
     # set current dummy app and also add it to list of dummies for later iteration 
-    def create_dummy type, orm, args = []
-      dum_app = DummyApp.new root_path, test_type, type, orm, args
-      self.dummy = Dummy.new dum_app      
-      dummies[dummy_app.name] = dummy
+    def create_dummy type, orm, option_args = []
+      @active_dummy = Dummy.create self, type, orm, option_args
+      dummies[dummy_app.name] = @active_dummy
     end
     
-    # used from inside template
-    def application_definition
-      contents = File.read(dummy_app.application_file)
-      index = (contents.index("module #{dummy_app.class_name}")) || 0        
-      contents[index..-1]
-    end
-
-    def short_name name
-      name.gsub /.+\/(.+)$/, '\1'
-    end
-
     def dummy_app
       dummy.dummy_app
     end 
