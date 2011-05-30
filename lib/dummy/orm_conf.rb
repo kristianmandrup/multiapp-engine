@@ -68,7 +68,7 @@ module Dummy
     end
 
     def orm_configurator
-      @orm_configurator ||= Mengine::Orm::Configurator.new destination_path, active_dummy
+      @orm_configurator ||= Mengine::Orm::Configurator.new mengine, active_dummy
     end
 
     def configure_orm

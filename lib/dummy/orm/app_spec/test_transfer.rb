@@ -3,10 +3,11 @@ require 'mengine/templates'
 module Dummy
   module Orm
     class TestTransfer
-      attr_reader :engine_config
+      attr_reader :mengine, :dummy
       
-      def initialize engine_config
-        @engine_config = engine_config
+      def initialize mengine, dummy
+        @mengine = mengine
+        @dummy = dummy
       end
       
       def copy_tests
@@ -19,16 +20,16 @@ module Dummy
 
       def handle_test_file file
         return if File.exist?(file)
-        copy_test_file file
+        copy_test_files file
         replacer.replace_orm_in file
       end
 
       def replacer
-        @replacer ||= Replacer.new engine_config.dummy
+        @replacer ||= Replacer.new mengine, dummy
       end
 
       def templates
-        @templates ||= Mengine::Templates.new root_path, dummy
+        @templates ||= Mengine::Templates.new mengine, dummy
       end
 
       def copy_test_files *files
@@ -42,6 +43,10 @@ module Dummy
       def dummy_file
         templates.dummy_file
       end      
+      
+      def engine_config
+        mengine.engine_config
+      end
     end
   end
 end

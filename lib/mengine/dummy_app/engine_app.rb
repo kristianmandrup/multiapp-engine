@@ -25,6 +25,10 @@ module Mengine
         engine_config.engine_apps
       end
 
+      def tests_path
+        engine_apps.tests_path
+      end        
+
       def container_path
         engine_apps.dummy_apps_container_path
       end            

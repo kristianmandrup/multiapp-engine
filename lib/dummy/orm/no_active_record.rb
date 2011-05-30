@@ -24,18 +24,26 @@ module Dummy
       end
       
       protected
+
+      def dummy_app
+        dummy.dummy_app
+      end
       
       def application_file
-        File.join(sandbox_dummy_config_path, 'application.rb')
+        File.join(config_path, 'application.rb')
       end
 
       def db_file
-        File.join(sandbox_dummy_config_path, 'database.yml')
+        File.join(config_path, 'database.yml')
       end
 
-      def sandbox_dummy_config_path
-        File.join(dummy_app.sandbox_path, 'config')
+      def config_path
+        File.join(sandbox_dummy, 'config')
       end 
+      
+      def sandbox_dummy
+        sandbox.dummy_path(dummy_app.name)
+      end      
     end
   end
 end

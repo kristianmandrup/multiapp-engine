@@ -11,6 +11,10 @@ module Dummy
 
       def install_gen_arguments
         ["--gems mongoid bson_ext", "--orms mongoid"] 
+      end 
+      
+      def gemfile
+        'Gemfile'
       end
     end
   end

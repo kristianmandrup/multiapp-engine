@@ -1,10 +1,17 @@
 module Dummy
   module Orm
     class Replacer
-      attr_reader :dummy
+      attr_reader :dummy, :mengine
       
-      def initialize dummy
+      def initialize mengine, dummy
+        @mengine = mengine
         @dummy = dummy
+      end
+
+      # the orm_helper.rb is put in the root of the dummy app spec folder 
+      def copy_orm_helper
+        FileUtils.cp src_file, target_file
+        replace_content target_file, 'dummy_app_name', dummy_app.name
       end
 
       def replace_orm_in_files *files
@@ -39,9 +46,13 @@ module Dummy
       def orm_helper
         "#{orm}_helper.rb"
       end
+
+      def test_helper_path
+        mengine.test_helper_path
+      end
       
       def dummy_spec
-        
+        dummy.dummy_spec
       end
     end
   end

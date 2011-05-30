@@ -1,28 +1,30 @@
 module Dummy
   module Orm
     class Configurator    
-      attr_accessor :dummy, :root_path
+      attr_reader :dummy, :root_path, :mengine
     
-      def initialize root_path, dummy
-        @root_path = root_path      
+      def initialize mengine, dummy
+        @mengine = mengine
         @dummy = dummy        
+      end
+
+      def configure_orm_helpers!
+        create_integration_spec_folder                
+        replacer.copy_orm_helper
+        tests_transfer.copy_tests
+        configure_specific_orm
       end
 
       protected
 
       include Mengine::Base
 
-      # the orm_helper.rb is put in the root of the dummy app spec folder 
-      def copy_orm_helper
-        FileUtils.cp src_file, target_file
-        replace_content target_file, 'dummy_app_name', dummy_app.name
+      def tests_transfer
+        TestTransfer.new mengine, dummy
       end
 
-      def configure_orm_helpers!
-        create_integration_spec_folder                
-        copy_orm_helper
-        copy_tests
-        configure_specific_orm
+      def replacer
+        Replacer.new mengine, dummy
       end
 
       def include_for_orm              
@@ -34,12 +36,16 @@ module Dummy
 
       def configure_specific_orm
         include_for_orm
-        remove_default_ar_config
-        send orm_config_method(orm) if respond_to? orm_config_method(orm)
+        ar_remover.remove_default_ar_config
+        orm_installer.install! 
       end
 
-      def orm_config_method
-        "config_#{orm}"
+      def ar_remover
+        @ar_remover ||= NoActiveRecord.new dummy
+      end
+
+      def orm_installer
+        @orm_installer ||= "#{orm.camelize}Installer".constantize.new dummy
       end
 
       def dummy_spec
@@ -52,6 +58,10 @@ module Dummy
     
       def test_folder
         engine_config.test_folder
+      end
+
+      def root_path
+        mengine.root_path
       end
 
       def test_helper_path
