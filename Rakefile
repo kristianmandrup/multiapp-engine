@@ -30,7 +30,7 @@ begin
     s.authors = ['Kristian Mandrup']
     s.files =  FileList["[A-Z]*", "lib/**/*", "bin/*"]
     s.bindir = "bin"
-    s.executables = %w(mengine dummy)
+    s.executables = %w(mangine dummy)
     s.add_dependency  "thor",       "~> 0.14.6"
     s.add_dependency  "rails",      "~> 3.1.0.rc1"
     s.add_dependency  "rake",       "~> 0.9"

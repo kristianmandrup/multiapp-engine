@@ -1,0 +1,88 @@
+h1. Design notes
+
+Folders:
+
+h2. lib/dummy 
+
+The dummy app generator and individual dummy command generators are found here.
+
+_Dummy::App_ in _app.rb_:
+
+The main Dummy generator. Executes a Dummy command generator based on the first (command name) argument.
+
+_Dummy::Helper_ in _helper.rb_:
+
+Helper functions to be reused in Dummy generators etc. (duplicate logic of Mengine::Base ?) - refactor DRY!?
+
+h2. lib/dummy/helpers 
+
+_Dummy::Helpers::Templates_ in _templates.rb_:
+
+Functions to copy template files from multiengine to the dummy app (when the dummy is in the "dummy-apps" folder of the engine).
+See: _/test_helpers/spec_ folder
+
+h2. lib/dummy/orm
+
+Helpers for the Dummy OrmConf generator. The Configurator is the main executor that instruments the configuration of the ORM in the dummy.
+Gems handles installation of gems (should use Dummy Gems generator?) and NoActiveRecord is in charge of removing any ActiveRecord related code lines from a dummy app.
+
+h2. lib/dummy/orm/app_spec
+
+Orm related functionality that relates to replacing placeholders in mengine tempate files with the ORM name and such. This should be done in the /app-specs folder in the engine created (not in sandbox!).
+
+h2. lib/dummy/orms
+
+Specific ORM initializers. Each initializer inherits and reuses basic functionality from BaseInstaller.
+
+h2. lib/mengine 
+
+The engine app generator _multi_engine.rb_ is found here.
+
+When _MultiEngine_ is run, it will attempt to create an internal model of the directories it operates on.
+
+
+_Mengine::AppsMatcher in _apps_matcher.rb_:
+
+Used to match dummy apps with a given pattern. Can fx be used to find all dummy apps in a given container that match a given orm.
+
+_Mengine::Base in _base.rb_:
+
+Some basic functionality that can be reused in various other modules/classes (junk drawer!?)
+
+_Mengine::Config_ in _config.rb_:
+
+Contains directory information for the multiengine gem. This is used in order to find files such as template files
+to be used when operating on the dummy.
+
+_Mengine::Dummy in _dummy.rb_:
+
+The Dummy is a container for a DummyApp and DummySpec object, both related to the dummy as it exists inside the engine created.
+  
+_Mengine::DummyApp in _dummy_app.rb_:
+
+The DummyApp contains information/functionality for the dummy as related to its position within the dummy-apps container folder within /spec or /test in the engine created.
+
+_Mengine::DummySpec in _dummy_spec.rb_:
+
+The DummySpec contains information/functionality for the dummy as related to its position within the app-specs container folder within 
+/spec or /test in the engine created. This folder will contain the initial specs to test a specific dummy.
+
+_Mengine::EngineApps in _engine_apps.rb_:
+
+The EngineApps contains information/functionality for engine dummy apps as a whole. It knows how to find a specific app within it and how to create an empty dummy app (ready for export).
+
+_Mengine::EngineConfig in _engine_config.rb_:
+
+The EngineConfig contains all the necessary info of the engine to be built, including all the dummies and the "current" dummy.
+
+_Mengine::Executor in _executor.rb_:
+
+The Executor module contains methods to execute commands in the system shell (can be reused in other modules/classes).
+
+_Mengine::OptionsHelper in _options_helper.rb_:
+
+The OptionsHelper contains options helper methods for the MultiEngine and Dummy::OrmConf generators.
+
+
+
+
