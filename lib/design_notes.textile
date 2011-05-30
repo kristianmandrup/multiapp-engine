@@ -1,6 +1,55 @@
 h1. Design notes
 
-Folders:
+Layout of engine created by multiengine:
+
+<pre>
+#engine name#
+- lib
+- specs
+  - app-specs
+    - dummy-active_record
+      - dummy-active_record_spec.rb
+        - integration
+          - navigation_spec.rb
+      - orm_helper.rb (for active record)
+    - dummy-mongoid
+      - dummy-mongoid_spec.rb
+      - integration
+        - navigation_spec.rb
+      - orm_helper.rb (for mongoid)
+  - dummy-apps
+    - dummy-active_record
+      - apps
+      - config
+        - application.rb
+        - boot.rb
+      - Gemfile  
+      - ...
+    - more apps ...
+  - spec_helper.rb
+  - init.rb
+  - config.rb
+</pre>
+
+The _/dummy-apps/dummy-active_record_ folder (and siblings) are handled by _DummyApp_.
+The _/app-specs/dummy-active_record_ folder (and siblings) are handled by _DummySpec_.
+The _#engine name#_ folder is handled by _EngineConfig_. It can calculate determine the full paths of _/app-specs_ and _/dummy-apps_. 
+The _/dummy-apps_ folder is handled by _EngineApps_.
+
+Sandbox layout:
+
+<pre>
+~/rails-dummies  
+  - dummy-active_record
+  - dummy-mongoid
+  - dummy-cancan-mongoid  
+  ...
+</pre>
+
+The _~/rails-dummies_ folder is handled by Sandbox.
+The _~/rails-dummies/dummy-active_record_ folder (and siblings) are handled by DummyApp:Sandbox.
+
+Folders of multiengine:
 
 h2. lib/dummy 
 
