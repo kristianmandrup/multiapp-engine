@@ -12,10 +12,10 @@ module Mengine
 
     attr_reader   :sandbox, :engine_app
 
-    def initialize engine_config, type, orm, option_args
+    def initialize engine_config, app_name, orm, option_args
       @engine_config = engine_config
 
-      @type = type
+      @app_name = app_name
       @orm = orm                  
       @option_args = option_args
 
@@ -27,11 +27,15 @@ module Mengine
     def name
       @name ||= begin
         arr = [dummy_prefix]
-        arr << type if type && !type.blank?
+        arr << app_name ifapp_name && !app_name.blank?
         arr << orm
         arr.join('-')
       end
     end     
+
+    def class_name
+      name.camelize
+    end
 
     def test_framework
       engine_config.test_framework

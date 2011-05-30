@@ -106,12 +106,10 @@ class MultiEngine < Thor::Group
     # for each orm
     orms.each do |orm|
       say "ORM #{orm}"
+
       # in engine find dummy apps matching orm, and for each
-      engine_apps.apps_matcher.apps_matching(orm).each do |name|    
-        say "Configuring #{name} app"        
-        # create the dummy app for that orm
-        self.active_dummy = engine_config.get_dummy(name)
-        create_app! if active_dummy
+      matching_apps_for orm do |app_name|
+        configure_app! name        
       end
     end
   end
@@ -119,21 +117,21 @@ class MultiEngine < Thor::Group
   protected
 
     attr_reader :active_dummy
-
-    def sandbox
-      @sandbox ||= Mengine::Sandbox.new sandbox_root_path, :orms => orms, :apps => apps
-    end
-
-    def engine_apps
-      @engine_apps ||= Mengine::EngineApps.new destination_root, test_folder, :orms => orms, :apps => apps
-    end
-
-    def engine_config
-      @engine_config ||= Mengine::EngineConfig.new destination_root, test_framework, sandbox, engine_apps
-    end
     
     include Mengine::Base
-    
+    include Mengine::OptionsHelper
+
+    def matching_apps_for orm 
+      engine_apps.apps_matcher.apps_matching(orm)
+    end
+
+    def configure_app! name
+      say "Configuring #{name} app"        
+      # create the dummy app for that orm
+      self.active_dummy = engine_config.get_dummy(name)
+      create_app! if active_dummy
+    end
+          
     def create_app!
       # run rails new generator
       create_rails_app
@@ -148,7 +146,7 @@ class MultiEngine < Thor::Group
     end
              
     def create_gen_arguments
-      active_dummy.argumentor.generator_arguments_for :create
+      dummy_app.argumentor.generator_arguments_for :create
     end
     
     # CONFIGURE ORM
@@ -165,11 +163,11 @@ class MultiEngine < Thor::Group
 
     # create empty dummy dir
     def create_empty_dummy!   
-      make_empty_dir(dummy_app.sandbox.dummy_path)
+      make_empty_dir(sandbox.dummy_path)
     end
 
-    def dummy_app
-      active_dummy.dummy_app
+    def make_empty_dir dir
+      empty_directory(dir) unless File.directory?(dir)
     end
   
     def rails_new_option_args(orm)
@@ -181,45 +179,26 @@ class MultiEngine < Thor::Group
       args
     end
     
-    def make_empty_dir dir
-      empty_directory(dir) unless File.directory?(dir)
-    end
-
     def mengine_root_path
       File.expand_path('../', __FILE__)
-    end
-
-    def test_helper_path
-      File.join(mengine_root_path, 'test_helpers', test_folder).gsub /.+\/\//, ''
     end
 
     def active_record? orm
       ['active_record', 'ar'].include?(orm)
     end
 
-    def test_folder
-      rspec? ? "spec" : "test"
-    end
-
     def dummy_container
       Mengine::EngineApps.dummy_apps_container
     end
-
-    # OPTION HELPERS
-
-    # the container folder of dummy apps in the sandbox, outside the engine
-    def sandbox_root_path
-      File.expand_path options[:sandbox]      
+    
+    def sandbox
+      dummy_app.sandbox
     end
 
-    def orms
-      @orms ||= !options[:orms].empty? ? options[:orms] : ['active_record']
-    end
-
-    def apps
-      @apps ||= !options[:apps].empty? ? options[:apps] : [nil]
-    end
-
+    def dummy_app
+      active_dummy.dummy_app
+    end  
+    
     def skip_testunit?
       options[:tu]
     end
@@ -228,26 +207,20 @@ class MultiEngine < Thor::Group
       options[:js]
     end
 
-    def rspec?
-      options[:test_framework] == "rspec"
-    end
-
-    def test_unit?
-      options[:test_framework] == "test_unit"
-    end
-
     def self.banner
       self_task.formatted_usage(self, false)
     end
 
+    # OPTIONS
+
     # Cache accessors since we are changing the directory
     def set_accessors!
-      self.name
+      self.engine_name
       self.class.source_root
     end
 
-    def name
-      @name ||= File.basename(destination_root)
+    def engine_name
+      @engine_name ||= File.basename(destination_root)
     end
 
     def camelized
@@ -255,6 +228,6 @@ class MultiEngine < Thor::Group
     end
 
     def underscored
-      @underscored ||= name.underscore
-    end
+      @underscored ||= engine_name.underscore
+    end      
 end

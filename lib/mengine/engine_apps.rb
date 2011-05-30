@@ -18,10 +18,18 @@ module Mengine
 
     # the container folder of dummy apps in the engine created
     def dummy_apps_container_path
-      File.join(root_path, test_folder, dummy_apps_container)    
+      File.join tests_path, dummy_apps_container
+    end
+
+    def tests_path
+      File.join root_path, test_folder
     end
 
     def dummy_apps_container
+      self.class.dummy_apps_container
+    end
+
+    def self.dummy_apps_container
       "dummy-apps"
     end
     

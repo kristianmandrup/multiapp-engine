@@ -1,4 +1,3 @@
-require 'rake'
 require 'active_support/inflector'
 
 module Mengine
@@ -19,7 +18,7 @@ module Mengine
       when :ar
         'active_record'
       else
-        orm
+        orm || 'active_record'
       end
     end        
   end

@@ -1,4 +1,6 @@
 require 'dummy/sandbox'
+require 'mengine/base'
+require 'mengine/options_helper'
 
 module Dummy
   class OrmConf < Thor::Group  
@@ -33,13 +35,11 @@ module Dummy
 
     say "Configures dummy apps for a given ORM"
     def execute!     
-      create_orm_configurator
-
       # TODO: export apps to sandbox
       
       # find matching apps in sandbox
       matching_apps.each do |app|        
-        set_dummy create_dummy(app)
+        create_dummy(app)
         configure_orm
       end
       
@@ -48,72 +48,44 @@ module Dummy
 
     protected
 
-    attr_accessor :name, :orm_configurator, :dummy
+    attr_accessor :name
 
     include Mengine::Base
+    include Dummy::Gems::Helper
+    include Dummy::Orm::Gems
+    include Mengine::OptionsHelper
 
-    def set_dummy dummy
-      self.dummy = dummy
-      orm_configurator.dummy = dummy
+    def mengine
+      @mengine ||= Mengine::Config.new File.expand_path('../../', __FILE__), engine_config
+    end
+    
+    def create_dummy app_name
+      engine_config.create_dummy app_name, orm      
     end
 
-    def create_orm_configurator
-      self.orm_configurator = Mengine::Orm::Configurator.new root_path, test_type, orm
+    def active_dummy 
+      engine_config.active_dummy
+    end
+
+    def orm_configurator
+      @orm_configurator ||= Mengine::Orm::Configurator.new destination_path, active_dummy
     end
 
     def configure_orm
       say "Configuring testing framework for #{orm}"
-      set_orm_helpers
+      orm_configurator.configure_orm_helpers!      
     end        
 
-    def configure_specific_orm
-      meth = "config_#{orm}"
-      send(meth) if respond_to?(meth)
+    def orm
+      translate options[:orm]
     end
 
-    def set_orm_helpers conf
-      # say "Configuring testing files for #{current_orm} app"
-      inside test_path do                
-        make_empty_dir(spec_integration_dir)
-        copy_orm_helper
-        copy_tests
-      end
+    def sandbox
+      dummy_app.sandbox
     end
 
-    def install_gems
-      case orm.to_sym 
-      when :mongoid
-        # puts gems into Gemfile and runs bundle to install them, then runs install and config generators
-        run_dummy_generator :install, ["ALL --gems mongoid bson_ext --orms mongoid"] 
-      end
-    end    
-
-    def gemfile
-      'Gemfile'
-    end
-
-    def sandbox_args(app)
-      args = [apps.join(' ')]
-      args << make_arg(:command,  rails_new_command(app))
-      args
-    end
-
-    def sandbox_generator
-      ::Dummy::Sandbox
-    end
-
-    # the path to the dummy app 
-    # - fx spec/dummy-apps/dummy-mongoid
-    def path    
-      File.join(dummy_apps_path, name)
-    end
-
-    def test_type
-      options[:test_framework] || 'rspec'
-    end
-
-    def dummy_apps_path 
-      File.join(test_type, "dummy-apps")
+    def dummy_app
+      active_dummy.dummy_app
     end  
   end     
 end

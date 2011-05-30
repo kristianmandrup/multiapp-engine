@@ -1,3 +1,5 @@
+require 'rake'
+
 module Mengine
   class AppsMatcher
     attr_accessor :dummy_container, :orms, :apps

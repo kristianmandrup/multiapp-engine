@@ -1,11 +1,5 @@
 module Mengine
-  class Dummy
-    include Thor::Actions # enable invoke
-
-    def self.source_root
-      @_source_root ||= File.expand_path('../../templates', __FILE__)
-    end
-  
+  class Dummy  
     attr_accessor :dummy_spec, :dummy_app
     
     def initialize dummy_app
@@ -13,8 +7,8 @@ module Mengine
       @dummy_app = dummy_app      
     end        
 
-    def self.create engine_config, type, orm, option_args
-      self.new DummyApp.new(engine_config, type, orm, option_args)
+    def self.create engine_config, app_name, orm, option_args
+      self.new DummyApp.new(engine_config, app_name, orm, option_args)
     end
 
     def argumentor

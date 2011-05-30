@@ -1,13 +1,11 @@
 module Dummy
   module Orm
     class Configurator    
-      attr_accessor :orm, :dummy, :root_path, :test_type
+      attr_accessor :dummy, :root_path
     
-      def initialize root_path, test_type, orm, dummy
-        @orm = orm
-        @dummy = dummy
-        @test_type = test_type
+      def initialize root_path, dummy
         @root_path = root_path      
+        @dummy = dummy        
       end
 
       protected
@@ -20,28 +18,28 @@ module Dummy
         replace_content target_file, 'dummy_app_name', dummy_app.name
       end
 
-      def copy_tests
-        test_files.each {|file| handle_test_file(file)}
+      def configure_orm_helpers!
+        create_integration_spec_folder        
+        copy_orm_helper
+        copy_tests
+        configure_specific_orm
       end
 
-      def test_files
-        [navigation_file, dummy_file]
-      end
-
-      def handle_test_file file
-        return if File.exist?(file)
-        copy_test_file file
-        replace_orm_in file
-      end
-
-      def copy_test_files *files
-        Mengine::Templates.new(root_path, dummy.dummy_spec, test_type).copy_test_files(*files)
-      end
-
-      def replace_orm_in_files *files
-        inside dummy_spec.path do
-          files.each {|file| replace_orm_in file}
+      def include_for_orm              
+        case orm.to_sym
+        when :mongoid
+          require 'dummy/orm/mongoid'
         end
+      end
+
+      def configure_specific_orm
+        include_for_orm
+        meth = orm_config_method(orm)
+        send(meth) if respond_to?(meth)
+      end
+
+      def orm_config_method
+        "config_#{orm}"
       end
 
       def dummy_spec
@@ -52,58 +50,29 @@ module Dummy
         dummy.dummy_app
       end
     
-      def orm_config_method
-        "config_#{orm}"
-      end
-
-      def test_path
-        test_type
-      end
-
-      def replace_orm_in file
-        return if !File.exist?(file)
-        [['orm', orm], ['path', dummy_spec.app_path], ['camelized', dummy_app.class_name]].each do |pair|
-          replace_content file, pair[0], pair[1]
-        end
-      end
-
-      def replace_content file, where, content
-        File.replace_content_from file, :where => "##{where}#", :with => content
-      end
-
-      # the orm_helper.rb file in the right /test_helpers subdirectory (for rspec or test unit)
-      def src_file
-        @src ||= File.join test_helper_path, 'orm', orm_helper
-      end
-
-      # the orm_helper.rb is put in the root of the dummy app spec folder 
-      def target_file
-        @tf ||= File.join dummy_spec.app_path, orm_helper
+      def test_folder
+        engine_config.test_folder
       end
 
       def test_helper_path
-        File.join(root_path, 'test_helpers', test_path).gsub /.+\/\//, ''
+        File.join(root_path, 'test_helpers', test_folder).gsub /.+\/\//, ''
       end
 
       def active_record?
         !orm || ['active_record', 'ar'].include?(orm)
       end
-
-      def orm_helper
-        "#{orm}_helper.rb"
+      
+      def orm 
+        dummy.orm
+      end
+      
+      def test_framework
+        dummy.test_framework 
       end
 
-      def spec_integration_dir
-        dummy_spec.named_dir 'integration'
-      end
-
-      def navigation_file
-        templates.navigation_file
-      end
-
-      def dummy_file
-        templates.dummy_file
-      end
+      def dummy_app 
+        dummy.dummy_app
+      end      
     end
   end
 end
